@@ -1,0 +1,89 @@
+{
+  "needs": [
+    { "id": "overwhelm", "name": "Overwhelmed" },
+    { "id": "noise", "name": "Too much noise" },
+    { "id": "drained", "name": "Drained" },
+    { "id": "settle", "name": "Settling" },
+    { "id": "sleep", "name": "Sleep" }
+  ],
+  "items": [
+    {
+      "id": "sigh-1",
+      "kind": "breath",
+      "title": "Quick reset",
+      "description": "One minute of double sighs. For when it's all too much, right now.",
+      "pattern": "sigh",
+      "minutes": 1,
+      "needs": ["overwhelm"]
+    },
+    {
+      "id": "longer-out-3",
+      "kind": "breath",
+      "title": "Slow it down",
+      "description": "Three minutes of breathing out longer than you breathe in.",
+      "pattern": "longer-out",
+      "minutes": 3,
+      "needs": ["overwhelm", "settle"]
+    },
+    {
+      "id": "box-5",
+      "kind": "breath",
+      "title": "Steady box",
+      "description": "Five minutes of the same simple rhythm. Predictable, nothing changes.",
+      "pattern": "box",
+      "minutes": 5,
+      "needs": ["settle"]
+    },
+    {
+      "id": "even-10",
+      "kind": "breath",
+      "title": "Even breathing",
+      "description": "Ten minutes at about six breaths a minute.",
+      "pattern": "even",
+      "minutes": 10,
+      "needs": ["settle", "drained"]
+    },
+    {
+      "id": "478-5",
+      "kind": "breath",
+      "title": "Winding down",
+      "description": "Five minutes of 4-7-8 breathing before bed.",
+      "pattern": "4-7-8",
+      "minutes": 5,
+      "needs": ["sleep"]
+    },
+    {
+      "id": "quiet-room",
+      "kind": "soundscape",
+      "title": "Quiet room",
+      "description": "Steady brown noise that takes the edge off sharp sounds. Good with earbuds in a busy place.",
+      "mix": "quiet-room",
+      "needs": ["noise"]
+    },
+    {
+      "id": "rain-room",
+      "kind": "soundscape",
+      "title": "Rain room",
+      "description": "Soft rain with a low, steady base.",
+      "mix": "rain-room",
+      "needs": ["noise", "sleep"]
+    },
+    {
+      "id": "low-tide",
+      "kind": "soundscape",
+      "title": "Low tide",
+      "description": "Slow waves and a warm hum. For resting when you have nothing left.",
+      "mix": "low-tide",
+      "minutes": 20,
+      "needs": ["drained", "sleep"]
+    },
+    {
+      "id": "soft-focus",
+      "kind": "soundscape",
+      "title": "Soft focus",
+      "description": "Light noise and a quiet hum to work or read with.",
+      "mix": "soft-focus",
+      "needs": ["settle", "noise"]
+    }
+  ]
+}
