@@ -2,6 +2,7 @@ import * as store from "./store.js";
 import * as sound from "./sound.js";
 import { PATTERNS, MINUTES, createSession, practicePattern } from "./breath.js";
 import { createRings } from "./rings.js";
+import * as haptic from "./haptic.js";
 import * as loops from "./loops.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -58,11 +59,23 @@ $$("[data-setting]").forEach((el) => {
     el.checked = !!store.get(key);
     el.addEventListener("change", () => {
       store.set(key, el.checked);
-      if (key === "vibrate" && el.checked) navigator.vibrate?.(30);
+      if (key === "vibrate" && el.checked) haptic.play([35], true);
       if (key === "tones" && el.checked) sound.cue("in");
     });
   }
 });
+
+// Vibration: hide the option where the phone can't do it, and explain iPhones.
+{
+  const row = $("#vibrate-row");
+  if (!haptic.supported) row.hidden = true;
+  else {
+    $("#vibrate-hint").textContent = haptic.kind === "ios"
+      ? "On iPhone this needs iOS 18 or later, with System Haptics on (Settings, then Sounds & Haptics). Silent mode can stop it."
+      : "Some phones turn vibration off in battery saver or silent mode.";
+    $("#vibrate-try").addEventListener("click", () => haptic.play([35, 20, 20], true));
+  }
+}
 
 /* ---------------- breathe ---------------- */
 const breathView = $('[data-view="breathe"]');
@@ -81,7 +94,7 @@ const session = createSession({
   onStep(step) {
     cueEl.textContent = step.cue;
     if (store.get("tones") && step.kind !== "hold") sound.cue(step.kind);
-    if (store.get("vibrate")) navigator.vibrate?.(step.kind === "hold" ? 15 : 30);
+    haptic.step(step.kind);
   },
   onTick({ secondsLeftInStep, remaining, step }) {
     countEl.textContent = store.get("showCount") ? String(secondsLeftInStep) : "";
@@ -113,6 +126,7 @@ function summaryText(from, to) {
 
 const breathRings = createRings($("#breath-canvas"), {
   getSize: () => session.size,
+  getHold: () => session.hold,
   isMinimal: () => store.minimalMotion(),
 });
 
@@ -134,6 +148,7 @@ function startBreathing() {
   }
   breathView.classList.add("breathing");
   toggleBtn.textContent = "Stop";
+  bringToTop();
 }
 function stopBreathing(finished = false) {
   if (!finished && practice && session.running && session.elapsed >= 60000) {
@@ -169,9 +184,8 @@ function renderBreathOptions() {
   $("#breath-options").hidden = mode !== "patterns";
   $("#practice-options").hidden = mode !== "practice";
 
-  buildChoices($("#pattern-choices"), Object.entries(PATTERNS).map(([id, p]) => [id, p.name]),
-    store.get("pattern"), (v) => { store.set("pattern", v); $("#pattern-hint").textContent = PATTERNS[v].hint; });
-  $("#pattern-hint").textContent = PATTERNS[store.get("pattern")]?.hint || "";
+  buildPatternCards();
+  showPatternLook();
   buildChoices($("#minute-choices"), MINUTES.map((m) => [m, minutesLabel(m)]),
     store.get("minutes"), (v) => store.set("minutes", Number(v)));
 
@@ -184,6 +198,49 @@ function renderBreathOptions() {
   buildChoices($("#practice-minutes"), [3, 5, 10, 15].map((m) => [m, `${m} min`]),
     store.get("practiceMinutes"), (v) => store.set("practiceMinutes", Number(v)));
   renderHistory();
+}
+
+// Each pattern is a card with a small timing bar, so they look and feel different.
+function buildPatternCards() {
+  const wrap = $("#pattern-choices");
+  wrap.innerHTML = "";
+  Object.entries(PATTERNS).forEach(([id, p]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pattern-card";
+    b.dataset.value = id;
+    b.innerHTML = `<span class="pc-top"><span class="pc-name"></span><span class="pc-feel"></span></span>
+      <span class="pc-bar" aria-hidden="true"></span><span class="pc-timing"></span><span class="pc-hint"></span>`;
+    $(".pc-name", b).textContent = p.name;
+    $(".pc-feel", b).textContent = p.feel || "";
+    $(".pc-timing", b).textContent = p.timing || "";
+    $(".pc-hint", b).textContent = p.hint || "";
+    p.steps.forEach((st) => {
+      const seg = document.createElement("i");
+      seg.className = st.kind;
+      seg.style.flexGrow = String(st.secs);
+      $(".pc-bar", b).append(seg);
+    });
+    b.addEventListener("click", () => {
+      store.set("pattern", id);
+      pressChoice(wrap, id);
+      showPatternLook();
+      haptic.tap();
+      bringToTop(); // you've settled on one: bring the circles and Start back into view
+    });
+    wrap.append(b);
+  });
+  pressChoice(wrap, store.get("pattern"));
+}
+function showPatternLook() {
+  const practiceMode = store.get("breathMode") === "practice";
+  const p = PATTERNS[store.get("pattern")] || {};
+  breathRings.setShape(practiceMode ? "circle" : p.shape);
+  breathRings.setMode(practiceMode ? "ripple" : p.rings);
+  $("#breath-label").textContent = practiceMode ? "Practise slowing" : p.name || "";
+}
+function bringToTop() {
+  window.scrollTo({ top: 0, behavior: store.minimalMotion() ? "auto" : "smooth" });
 }
 
 $$("button", $("#breath-mode")).forEach((b) => b.addEventListener("click", () => {
@@ -305,6 +362,30 @@ const audio = new Audio();
 audio.preload = "none";
 let current = null;
 
+// Anything with an "added" date in library.json counts as new for a couple of weeks.
+function isNew(it) {
+  if (!it.added) return false;
+  const days = (Date.now() - new Date(it.added).getTime()) / 86400000;
+  return days >= 0 && days <= (library.newDays || 14);
+}
+function renderWhatsNew() {
+  const box = $("#whats-new");
+  const fresh = library.items.filter(isNew).sort((a, b) => (b.added || "").localeCompare(a.added || "")).slice(0, 3);
+  box.hidden = !fresh.length;
+  const list = $("#whats-new-list");
+  list.innerHTML = "";
+  fresh.forEach((it) => {
+    const a = document.createElement("a");
+    a.className = "new-item";
+    a.href = `#library?open=${encodeURIComponent(it.id)}`;
+    a.innerHTML = `<span class="new-dot" aria-hidden="true"></span><span class="new-title"></span><span class="new-kind"></span>`;
+    $(".new-title", a).textContent = it.title;
+    $(".new-kind", a).textContent = KIND_LABEL[it.kind] || "";
+    list.append(a);
+  });
+}
+
+let libraryReady = null;
 async function loadLibrary() {
   try {
     const res = await fetch("library.json", { cache: "no-cache" });
@@ -317,6 +398,7 @@ async function loadLibrary() {
     needFilter = v; renderLibrary();
   });
   renderLibrary();
+  renderWhatsNew();
 }
 
 const KIND_LABEL = { breath: "Breathing", soundscape: "Soundscape", audio: "Recording", meditation: "Meditation" };
@@ -340,6 +422,12 @@ function renderLibrary() {
     kind.className = "lib-kind";
     kind.textContent = KIND_LABEL[it.kind] || "";
     $(".lib-title", li).append(kind);
+    if (isNew(it)) {
+      const tag = document.createElement("span");
+      tag.className = "lib-new";
+      tag.textContent = "New";
+      $(".lib-title", li).append(tag);
+    }
     $(".lib-desc", li).textContent = it.description || "";
     $(".lib-btn", li).addEventListener("click", () => openItem(it));
     list.append(li);
@@ -538,6 +626,13 @@ function route() {
     }
   }
   if (view === "sounds") syncMixer();
+  if (view === "library" && params.get("open")) {
+    libraryReady.then(() => {
+      const it = library.items.find((x) => x.id === params.get("open"));
+      history.replaceState(null, "", "#library");
+      if (it) openItem(it);
+    });
+  }
   if ((currentView === "loop" || currentView === "loops") && view !== currentView) loops.leaveLoops();
   if (currentView === "home" && view !== "home") homeRings.stop();
   if (view === "loops") loops.renderLoopList($("#loops-view"));
@@ -558,7 +653,7 @@ window.addEventListener("hashchange", route);
 /* ---------------- start ---------------- */
 applySettings();
 renderMixer();
-loadLibrary();
+libraryReady = loadLibrary();
 route();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {

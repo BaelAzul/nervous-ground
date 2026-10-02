@@ -227,6 +227,101 @@ function typingBox(placeholder) {
   return el("textarea", { class: "jot", rows: "3", placeholder, autocomplete: "off", autocapitalize: "sentences", spellcheck: "false" });
 }
 
+function floatLayer() {
+  let layer = document.getElementById("float-layer");
+  if (!layer) {
+    layer = el("div", { id: "float-layer", "aria-hidden": "true" });
+    document.body.append(layer);
+  }
+  return layer;
+}
+
+// Words drift up and dissolve slowly as you write them, in real time.
+// Each finished word floats away; a half-written word goes too after a pause.
+// Nothing is kept: the words only exist on screen until they fade, then they're removed.
+function releaseBox(placeholder, { rows = 2 } = {}) {
+  const sky = el("div", { class: "release-sky", "aria-hidden": "true" });
+  const input = el("textarea", {
+    class: "jot release-input", rows: String(rows), placeholder, "aria-label": placeholder || "Write here",
+    autocomplete: "off", autocapitalize: "sentences", spellcheck: "false",
+  });
+  const wrap = el("div", { class: "release" }, sky, input,
+    el("p", { class: "hint release-hint", text: "Your words drift away as you write. Nothing is kept." }));
+  let idle = 0, composing = false;
+  // Words sit on lines just above the writing box. When a line is full, the older lines
+  // move up one step and a new line starts underneath, so words never pile on top of each other.
+  let lines = [];
+
+  function newLine(box) {
+    const lineEl = el("div", { class: "float-line" });
+    lineEl.style.left = `${box.left + window.scrollX}px`;
+    lineEl.style.top = `${box.bottom + window.scrollY}px`;
+    lineEl.style.width = `${box.width}px`;
+    floatLayer().append(lineEl);
+    const lineH = parseFloat(getComputedStyle(lineEl).lineHeight) || 30;
+    const maxUp = Math.max(1, Math.floor(box.height / lineH) - 1);
+    lines.forEach((l) => {
+      l.step++;
+      l.el.style.transform = `translateY(${-(l.step + 1) * lineH}px)`;
+      if (l.step > maxUp) l.el.classList.add("gone"); // past the space above the box: let it go quickly
+    });
+    const line = { el: lineEl, step: 0, count: 0 };
+    lineEl.style.transform = `translateY(${-lineH}px)`;
+    lines.push(line);
+    return line;
+  }
+
+  function float(word) {
+    // Words live in a layer over the page, so they keep drifting even if the screen moves on.
+    const box = sky.getBoundingClientRect();
+    if (!box.width) return;
+    let line = lines[lines.length - 1];
+    if (!line || line.el.classList.contains("gone")) line = newLine(box);
+    const span = el("span", { class: store.minimalMotion() ? "floaty still" : "floaty", text: word });
+    line.el.append(span);
+    if (line.count > 0 && line.el.scrollWidth > box.width) {
+      span.remove();
+      line = newLine(box);
+      line.el.append(span);
+    }
+    span.style.setProperty("--dx", `${Math.round((Math.random() - 0.5) * 24)}px`);
+    span.style.setProperty("--rise", `${Math.round(18 + Math.random() * 18)}px`);
+    line.count++;
+    span.addEventListener("animationend", () => {
+      span.remove();
+      if (!line.el.childElementCount) {
+        line.el.remove();
+        lines = lines.filter((l) => l !== line);
+      }
+    });
+  }
+  function releaseWords(all) {
+    const v = input.value;
+    const parts = v.split(/(\s+)/);
+    // keep the word still being typed, unless releasing everything
+    const keep = all || /\s$/.test(v) ? "" : parts.pop();
+    parts.join("").split(/\s+/).filter(Boolean).forEach(float);
+    if (input.value !== keep) input.value = keep;
+  }
+  input.addEventListener("compositionstart", () => { composing = true; });
+  input.addEventListener("compositionend", () => { composing = false; releaseWords(false); });
+  input.addEventListener("input", (e) => {
+    clearTimeout(idle);
+    if (!composing && !e.isComposing) releaseWords(false);
+    idle = setTimeout(() => { if (!composing) releaseWords(true); }, 2600);
+  });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); clearTimeout(idle); releaseWords(true); }
+  });
+  // Setting .value = "" lets everything go (used when moving on).
+  Object.defineProperty(wrap, "value", {
+    get: () => input.value,
+    set: () => { clearTimeout(idle); releaseWords(true); },
+  });
+  wrap.focusInput = () => input.focus({ preventScroll: true });
+  return wrap;
+}
+
 function runDrill(drill, area, ctx) {
   const done = ctx.onDone;
   const kinds = { lines: drillLines, notice: drillNotice, worryTree: drillWorryTree, listen: drillListen, brainDump: drillBrainDump, link: drillLink, changeWords: drillChangeWords };
@@ -237,7 +332,7 @@ function drillLines(drill, area, done) {
   let i = 0;
   const intro = drill.intro ? el("p", { class: "hint", text: drill.intro }) : null;
   const line = el("p", { class: "line", "aria-live": "polite" });
-  const box = drill.typeable ? typingBox("Type, or just think it") : null;
+  const box = drill.typeable ? releaseBox("Type, or just think it") : null;
   const nextBtn = btn("Next", () => advance(), "primary");
   const row = el("div", { class: "row" }, nextBtn);
   area.append(...[intro, line, box, row].filter(Boolean));
@@ -248,7 +343,7 @@ function drillLines(drill, area, done) {
     if (box) { box.value = ""; box.remove(); }
     row.remove();
     if (drill.outro) area.append(el("p", { class: "line soft", text: drill.outro }));
-    if (drill.outro && drill.typeable && drill.outro.includes("type")) area.append(typingBox(""));
+    if (drill.outro && drill.typeable && drill.outro.includes("type")) area.append(releaseBox("Type it, or just think it"));
     if (drill.park) area.append(el("div", { class: "row" }, btn("Pick a time for it", () => { area.lastChild.remove(); area.append(parkPicker(done)); }), btn("Continue", done, "primary")));
     else done();
   }
@@ -319,7 +414,7 @@ function drillNotice(drill, area, done, ctx = {}) {
 
 function drillWorryTree(drill, area, done, ctx) {
   const screen = (...kids) => { area.innerHTML = ""; area.append(...kids); };
-  const box = typingBox(drill.firstHint);
+  const box = releaseBox(drill.firstHint);
   screen(el("p", { class: "line", text: drill.first }), box,
     el("div", { class: "row" }, btn("Next", () => { box.value = ""; ask(); }, "primary")));
   function ask() {
@@ -383,18 +478,17 @@ function drillListen(drill, area, done) {
 }
 
 function drillBrainDump(drill, area, done) {
-  const box = el("textarea", { class: "jot dump", rows: "8", placeholder: drill.prompt, autocomplete: "off", spellcheck: "false" });
+  const box = releaseBox("Anything at all…", { rows: 3 });
+  box.classList.add("dump");
   area.append(el("p", { class: "hint", text: drill.prompt }), box,
-    el("div", { class: "row" }, btn("Let it all go", () => {
-      box.classList.add("fading");
+    el("div", { class: "row" }, btn("That's everything", () => {
+      box.value = "";
       setTimeout(() => {
-        box.value = "";
         area.innerHTML = "";
         area.append(el("p", { class: "line", text: "Out of your head. You don't need to hold it now." }));
         done();
-      }, 2500);
-    }, "primary")),
-    el("p", { class: "hint", text: "Nothing you type here is kept." }));
+      }, store.minimalMotion() ? 600 : 3500);
+    }, "primary")));
 }
 
 function drillLink(drill, area, done) {
@@ -448,4 +542,8 @@ export async function renderHelp(root) {
   );
 }
 
-export function leaveLoops() { runCleanup(); clearCircles(); }
+export function leaveLoops() {
+  runCleanup();
+  clearCircles();
+  document.getElementById("float-layer")?.replaceChildren(); // words don't follow you to other screens
+}

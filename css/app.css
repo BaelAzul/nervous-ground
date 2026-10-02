@@ -192,20 +192,53 @@ legend { font-weight: 600; margin-bottom: .6rem; padding: 0; }
 .secondary:hover { background: var(--surface-2); }
 
 .switch { display: flex; align-items: flex-start; gap: .75rem; padding: .45rem 0; cursor: pointer; }
+.vibrate-row[hidden] { display: none; }
+.vibrate-row .hint { margin: 0 0 0 calc(22px + .75rem); }
+.vibrate-row .text-btn { margin-left: calc(22px + .75rem); }
 .switch input { width: 22px; height: 22px; margin: .2rem 0 0; accent-color: var(--breath); flex: none; }
 
 /* ---------- breathe ---------- */
 .stage { position: relative; width: min(100%, 22rem); aspect-ratio: 1; margin: 0 auto; }
 .stage canvas, .calm canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.stage-text { text-align: center; margin-top: -.5rem; }
+.stage-text { text-align: center; margin-top: -1.25rem; }
 .cue { font-size: var(--step-3); font-weight: 600; margin: 0 auto; max-width: 14em; min-height: 1.3em; }
 .count { font-size: var(--step-1); color: var(--lichen); margin: .25rem auto 0; min-height: 1.6em; font-variant-numeric: tabular-nums; }
-.remaining { text-align: center; color: var(--lichen); font-size: var(--step-0); min-height: 1.5em; margin: 0 auto .75rem; font-variant-numeric: tabular-nums; }
-.breath-controls { display: flex; justify-content: center; margin-bottom: 2rem; }
+.remaining { text-align: center; color: var(--lichen); font-size: var(--step-0); min-height: 1.5em; margin: 0 auto .5rem; font-variant-numeric: tabular-nums; }
+.breath-controls { display: flex; justify-content: center; margin-bottom: 2.25rem; }
 .breath-controls .primary { min-width: 10rem; }
-.breathing .options { opacity: .35; pointer-events: none; transition: opacity .5s ease; }
+/* While breathing, only the circles and the cue stay on screen. */
+.breathing .options, .breathing .mode-switch { display: none; }
+.breath-label { text-align: center; color: var(--lichen); font-size: var(--step-0); margin: .25rem auto 0; min-height: 1.5em; }
 
-.mode-switch { justify-content: center; margin: .25rem 0 .5rem; }
+/* Two-way switch, one soft pill with two halves */
+.mode-switch {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px;
+  width: min(100%, 22rem); margin: .25rem auto .25rem; border-radius: var(--radius-soft); background: var(--surface);
+}
+.mode-switch button { min-height: 42px; background: transparent; padding: .3rem .8rem; }
+.mode-switch button:hover { background: var(--surface-2); }
+
+/* Pattern cards: each shows its rhythm as a little bar */
+.pattern-cards { display: grid; gap: .6rem; }
+.pattern-card {
+  display: grid; gap: .45rem; width: 100%; text-align: left; cursor: pointer;
+  padding: .9rem 1.05rem 1rem; border: 2px solid transparent; border-radius: var(--radius-card);
+  background: var(--surface); box-shadow: var(--shadow);
+  transition: border-color .2s ease, background-color .2s ease;
+}
+.pattern-card:hover { background: var(--surface-2); }
+.pattern-card[aria-pressed="true"] { border-color: var(--breath); background: color-mix(in srgb, var(--breath) 10%, var(--surface)); }
+.pc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.pc-name { font-weight: 600; }
+.pc-feel { color: var(--sand); font-size: var(--step-0); white-space: nowrap; }
+.pc-bar { display: flex; gap: 3px; height: 8px; }
+.pc-bar i { display: block; border-radius: 4px; flex-basis: 0; }
+.pc-bar i.in { background: var(--breath); }
+.pc-bar i.out { background: color-mix(in srgb, var(--breath) 45%, var(--surface-2)); }
+.pc-bar i.hold { background: color-mix(in srgb, var(--sand) 70%, transparent); }
+.pc-timing { color: var(--lichen); font-size: var(--step-0); }
+.pc-hint { display: none; font-size: var(--step-0); line-height: 1.5; padding-top: .1rem; }
+.pattern-card[aria-pressed="true"] .pc-hint { display: block; }
 .pace { color: var(--lichen); }
 .not-helping { text-align: center; margin: -1rem auto 2rem; font-size: var(--step-0); }
 .not-helping[hidden] { display: none; }
@@ -249,7 +282,13 @@ legend { font-weight: 600; margin-bottom: .6rem; padding: 0; }
 input[type="range"] { flex: 1; accent-color: var(--breath); height: 32px; }
 
 /* ---------- library ---------- */
-.filters { margin: 1rem 0 1.25rem; }
+.filters { margin: 1rem calc(-1 * var(--gutter)) 1.25rem; }
+.filters .choice-row {
+  flex-wrap: nowrap; overflow-x: auto; padding: 0 var(--gutter) .25rem; scrollbar-width: none;
+  scroll-padding-inline: var(--gutter);
+}
+.filters .choice-row::-webkit-scrollbar { display: none; }
+.filters .choice-row button { flex: none; }
 .library { list-style: none; padding: 0; margin: 0 0 2rem; display: grid; gap: .6rem; }
 .lib-btn {
   display: grid; grid-template-columns: 1fr auto; gap: .2rem 1rem; width: 100%;
@@ -262,6 +301,21 @@ input[type="range"] { flex: 1; accent-color: var(--breath); height: 32px; }
 .lib-desc { grid-column: 1 / -1; color: var(--lichen); font-size: var(--step-0); max-width: 34em; }
 .lib-kind { display: inline-block; font-size: .8rem; color: var(--sand); margin-left: .5rem; font-weight: 400; }
 .empty { color: var(--lichen); }
+.lib-new {
+  display: inline-block; margin-left: .5rem; padding: 0 .55rem; border-radius: 999px; vertical-align: .1em;
+  font-size: .78rem; font-weight: 700; background: var(--sand); color: var(--on-breath);
+}
+/* New in Ebbly (home) */
+.whats-new {
+  margin: 0 0 1rem; padding: .9rem 1.1rem .7rem; border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--sand) 13%, var(--surface));
+}
+.whats-new[hidden] { display: none; }
+.whats-new h2 { font-size: var(--step-0); color: var(--sand); margin: 0 0 .3rem; font-weight: 700; }
+.new-item { display: flex; align-items: center; gap: .6rem; padding: .45rem 0; text-decoration: none; }
+.new-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sand); flex: none; }
+.new-title { font-weight: 600; }
+.new-kind { color: var(--lichen); font-size: var(--step-0); margin-left: auto; }
 
 .player {
   position: sticky; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + .5rem);
@@ -351,7 +405,30 @@ body.in-calm main { max-width: none; padding: 0; }
 .jot:focus { outline: none; border-color: color-mix(in srgb, var(--breath) 60%, transparent); }
 .jot::placeholder { color: var(--lichen); opacity: .8; }
 .jot.one-line { min-height: 52px; }
-.jot.dump.fading { opacity: 0; filter: blur(6px); }
+/* Writing that drifts away */
+.release { margin: .25rem 0; }
+.release-sky { height: 6.5rem; }
+.release.dump .release-sky { height: 9rem; }
+.release-hint { margin-top: .4rem; }
+#float-layer { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: visible; pointer-events: none; z-index: 5; }
+.float-line {
+  position: absolute; display: flex; flex-wrap: nowrap; gap: .3em; overflow: visible;
+  font-size: var(--step-2); line-height: 1.5;
+  transition: transform 1.2s cubic-bezier(.3, .6, .3, 1), opacity 1.2s ease;
+}
+.float-line.gone { opacity: 0; }
+.floaty {
+  display: inline-block; white-space: nowrap; color: var(--mist);
+  animation: drift 10s cubic-bezier(.2, .55, .45, 1) forwards;
+}
+.floaty.still { animation: fade 6s ease-in forwards; }
+@keyframes drift {
+  0% { opacity: 0; transform: translateY(4px); filter: blur(0); }
+  5% { opacity: 1; }
+  45% { opacity: .85; filter: blur(0); }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--rise) * -1)); filter: blur(6px); letter-spacing: .12em; }
+}
+@keyframes fade { 0% { opacity: 1; } 35% { opacity: .9; } 100% { opacity: 0; } }
 .drill-choices, .action-choices { display: grid; gap: .6rem; margin: .5rem 0 1rem; }
 .drill-choices .secondary, .action-choices .action { justify-content: flex-start; text-align: left; }
 .drill-choices .secondary { border-radius: var(--radius-card); min-height: 56px; }

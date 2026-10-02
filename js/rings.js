@@ -14,7 +14,9 @@
 
 export const MODES = ["ripple", "outward", "tide", "loosen", "warm", "open", "still", "fade"];
 
-export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "ripple" }) {
+// Options: shape "circle" or "box" (soft rounded squares, for box breathing);
+// getHold() can return 0..1 while a breath is held, to draw a slow arc so the hold has a visible end.
+export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "ripple", shape = "circle", getHold = null }) {
   const ctx2d = canvas.getContext("2d");
   let raf = 0;
   let running = false;
@@ -108,7 +110,7 @@ export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "rip
       }
 
       ctx2d.beginPath();
-      const steps = 140;
+      const steps = shape === "box" ? 220 : 140;
       for (let s = 0; s <= steps; s++) {
         const a = from + (s / steps) * (to - from);
         let wobble = 0;
@@ -120,12 +122,39 @@ export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "rip
           if (mode === "tide") wobble += base * Math.sin(a + t * 0.3 + i * 0.5) * 0.01;
           if (knot) wobble += base * knot * (Math.sin(a * 5 + t * 0.6 + i * 1.7) * 0.05 + Math.sin(a * 7 - t * 0.4 + i) * 0.025);
         }
-        const rr = base + wobble;
+        let rr = base + wobble;
+        if (shape === "box") {
+          // superellipse: a circle that has become a soft square
+          const n = 4;
+          rr = rr * 0.93 / Math.pow(Math.pow(Math.abs(Math.cos(a)), n) + Math.pow(Math.abs(Math.sin(a)), n), 1 / n);
+        }
         const x = cx + ox + Math.cos(a) * rr * sx, y = cy + oy + Math.sin(a) * rr * sy;
         s ? ctx2d.lineTo(x, y) : ctx2d.moveTo(x, y);
       }
       if (mode !== "open") ctx2d.closePath();
       ctx2d.stroke();
+    }
+    // A slow arc while holding, so you can see when the hold will end.
+    const hold = getHold ? getHold() : null;
+    if (hold != null && hold >= 0) {
+      const sandC = hexToRgb(palette.sand);
+      const hr = maxR * 0.98;
+      ctx2d.lineCap = "round";
+      ctx2d.lineWidth = 3;
+      const path = (p) => {
+        ctx2d.beginPath();
+        const n = 120;
+        for (let s = 0; s <= n; s++) {
+          const a = -Math.PI / 2 + Math.PI * 2 * p * (s / n);
+          let r = hr;
+          if (shape === "box") r = hr * 0.93 / Math.pow(Math.pow(Math.abs(Math.cos(a)), 4) + Math.pow(Math.abs(Math.sin(a)), 4), 1 / 4);
+          const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+          s ? ctx2d.lineTo(x, y) : ctx2d.moveTo(x, y);
+        }
+        ctx2d.stroke();
+      };
+      ctx2d.strokeStyle = rgba(sandC, 0.18); path(1);
+      ctx2d.strokeStyle = rgba(sandC, 0.75); path(Math.min(1, hold));
     }
     if (running) raf = requestAnimationFrame(draw);
   }
@@ -137,6 +166,7 @@ export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "rip
     start() { if (running) return; running = true; t0 = performance.now(); resize(); palette = colors(); raf = requestAnimationFrame(draw); },
     stop() { running = false; cancelAnimationFrame(raf); },
     redraw() { palette = colors(); resize(); draw(performance.now()); },
+    setShape(sh) { shape = sh === "box" ? "box" : "circle"; if (!running) this.redraw(); },
     setMode(m) { mode = MODES.includes(m) ? m : "ripple"; t0 = performance.now(); if (!running) this.redraw(); },
     destroy() { running = false; cancelAnimationFrame(raf); ro.disconnect(); },
   };

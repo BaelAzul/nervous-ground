@@ -4,6 +4,7 @@
 export const PATTERNS = {
   "longer-out": {
     name: "Longer out-breath",
+    rings: "ripple", feel: "Settling", timing: "In 4, out 6",
     hint: "In for 4, out for 6. A longer out-breath helps the body slow down.",
     steps: [
       { cue: "Breathe in", kind: "in", secs: 4, to: 1 },
@@ -12,6 +13,7 @@ export const PATTERNS = {
   },
   sigh: {
     name: "Double sigh",
+    rings: "outward", feel: "Quick relief", timing: "In, a little more, long sigh out",
     hint: "Two breaths in through the nose, then a long, slow sigh out. Good for fast relief.",
     steps: [
       { cue: "Breathe in", kind: "in", secs: 2.5, to: 0.8 },
@@ -21,6 +23,7 @@ export const PATTERNS = {
   },
   box: {
     name: "Box",
+    rings: "still", shape: "box", feel: "Steady", timing: "In 4, hold 4, out 4, hold 4",
     hint: "In, hold, out, hold, for 4 each. Steady and predictable.",
     steps: [
       { cue: "Breathe in", kind: "in", secs: 4, to: 1 },
@@ -31,6 +34,7 @@ export const PATTERNS = {
   },
   even: {
     name: "Even",
+    rings: "tide", feel: "Balanced", timing: "In 5, out 5",
     hint: "In for 5, out for 5. A calm, even rhythm about six breaths a minute.",
     steps: [
       { cue: "Breathe in", kind: "in", secs: 5, to: 1 },
@@ -39,6 +43,7 @@ export const PATTERNS = {
   },
   "4-7-8": {
     name: "4-7-8",
+    rings: "fade", feel: "Winding down", timing: "In 4, hold 7, out 8",
     hint: "In for 4, hold for 7, out for 8. Some find it helps before sleep. Skip the hold if it feels uncomfortable.",
     steps: [
       { cue: "Breathe in", kind: "in", secs: 4, to: 1 },
@@ -91,6 +96,7 @@ export function createSession({ onStep, onTick, onDone }) {
   let startedAt = 0;
   let running = false;
   let tickId = 0;
+  let stepP = 0;
 
   function beginStep(now) {
     const step = steps[stepIndex];
@@ -104,6 +110,7 @@ export function createSession({ onStep, onTick, onDone }) {
     const now = performance.now();
     const step = steps[stepIndex];
     const p = Math.min(1, (now - stepStart) / (step.secs * 1000));
+    stepP = p;
     size = from + (step.to - from) * ease(p);
     const left = Math.ceil(step.secs - (now - stepStart) / 1000);
     onTick({ size, step, secondsLeftInStep: Math.max(1, left), remaining: endAt ? Math.max(0, endAt - Date.now()) : null });
@@ -139,6 +146,8 @@ export function createSession({ onStep, onTick, onDone }) {
     stop() { running = false; cancelAnimationFrame(tickId); },
     get running() { return running; },
     get size() { return size; },
+    // 0..1 through a hold, or null when not holding
+    get hold() { return running && steps[stepIndex]?.kind === "hold" ? stepP : null; },
     get elapsed() { return startedAt ? Date.now() - startedAt : 0; },
     settle() {
       // Ease the shape back to resting size after stopping.

@@ -1,10 +1,27 @@
 {
+  "newDays": 14,
+  "_howTo": "To add something new, copy one item below, give it a new id, title and description, and set added to today's date (YYYY-MM-DD). It shows as New for newDays days. See ADDING.md.",
   "needs": [
-    { "id": "overwhelm", "name": "Overwhelmed" },
-    { "id": "noise", "name": "Too much noise" },
-    { "id": "drained", "name": "Drained" },
-    { "id": "settle", "name": "Settling" },
-    { "id": "sleep", "name": "Sleep" }
+    {
+      "id": "overwhelm",
+      "name": "Overwhelmed"
+    },
+    {
+      "id": "noise",
+      "name": "Too much noise"
+    },
+    {
+      "id": "drained",
+      "name": "Drained"
+    },
+    {
+      "id": "settle",
+      "name": "Settling"
+    },
+    {
+      "id": "sleep",
+      "name": "Sleep"
+    }
   ],
   "items": [
     {
@@ -14,7 +31,9 @@
       "description": "One minute of double sighs. For when it's all too much, right now.",
       "pattern": "sigh",
       "minutes": 1,
-      "needs": ["overwhelm"]
+      "needs": [
+        "overwhelm"
+      ]
     },
     {
       "id": "longer-out-3",
@@ -23,7 +42,10 @@
       "description": "Three minutes of breathing out longer than you breathe in.",
       "pattern": "longer-out",
       "minutes": 3,
-      "needs": ["overwhelm", "settle"]
+      "needs": [
+        "overwhelm",
+        "settle"
+      ]
     },
     {
       "id": "box-5",
@@ -32,7 +54,9 @@
       "description": "Five minutes of the same simple rhythm. Predictable, nothing changes.",
       "pattern": "box",
       "minutes": 5,
-      "needs": ["settle"]
+      "needs": [
+        "settle"
+      ]
     },
     {
       "id": "even-10",
@@ -41,7 +65,10 @@
       "description": "Ten minutes at about six breaths a minute.",
       "pattern": "even",
       "minutes": 10,
-      "needs": ["settle", "drained"]
+      "needs": [
+        "settle",
+        "drained"
+      ]
     },
     {
       "id": "478-5",
@@ -50,7 +77,9 @@
       "description": "Five minutes of 4-7-8 breathing before bed.",
       "pattern": "4-7-8",
       "minutes": 5,
-      "needs": ["sleep"]
+      "needs": [
+        "sleep"
+      ]
     },
     {
       "id": "quiet-room",
@@ -58,7 +87,9 @@
       "title": "Quiet room",
       "description": "Steady brown noise that takes the edge off sharp sounds. Good with earbuds in a busy place.",
       "mix": "quiet-room",
-      "needs": ["noise"]
+      "needs": [
+        "noise"
+      ]
     },
     {
       "id": "rain-room",
@@ -66,7 +97,10 @@
       "title": "Rain room",
       "description": "Soft rain with a low, steady base.",
       "mix": "rain-room",
-      "needs": ["noise", "sleep"]
+      "needs": [
+        "noise",
+        "sleep"
+      ]
     },
     {
       "id": "low-tide",
@@ -75,7 +109,10 @@
       "description": "Slow waves and a warm hum. For resting when you have nothing left.",
       "mix": "low-tide",
       "minutes": 20,
-      "needs": ["drained", "sleep"]
+      "needs": [
+        "drained",
+        "sleep"
+      ]
     },
     {
       "id": "soft-focus",
@@ -83,7 +120,10 @@
       "title": "Soft focus",
       "description": "Light noise and a quiet hum to work or read with.",
       "mix": "soft-focus",
-      "needs": ["settle", "noise"]
+      "needs": [
+        "settle",
+        "noise"
+      ]
     }
   ]
 }

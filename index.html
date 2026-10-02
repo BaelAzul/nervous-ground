@@ -51,6 +51,10 @@
       </div>
       <h1 id="home-title" class="home-title">Hello.</h1>
       <p class="home-welcome">No rush. Pick whatever feels right, or just stay here with the circles for a bit.</p>
+      <section class="whats-new" id="whats-new" aria-labelledby="whats-new-title" hidden>
+        <h2 id="whats-new-title">New in Ebbly</h2>
+        <div id="whats-new-list"></div>
+      </section>
       <ul class="cards">
         <li><a href="#breathe?pattern=longer-out&amp;minutes=3" class="card">
           <span class="pebble" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8"/></svg></span>
@@ -88,6 +92,7 @@
         <button type="button" data-value="patterns">Patterns</button>
         <button type="button" data-value="practice">Practise slowing</button>
       </div>
+      <p class="breath-label" id="breath-label"></p>
       <div class="stage" id="breath-stage">
         <canvas id="breath-canvas" aria-hidden="true"></canvas>
       </div>
@@ -144,13 +149,12 @@
 
       <div class="options" id="breath-options">
         <fieldset>
-          <legend>Pattern</legend>
-          <div class="choice-row" id="pattern-choices"></div>
-          <p class="hint" id="pattern-hint"></p>
-        </fieldset>
-        <fieldset>
           <legend>How long</legend>
           <div class="choice-row" id="minute-choices"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Choose a pattern</legend>
+          <div class="pattern-cards" id="pattern-choices"></div>
         </fieldset>
       </div>
     </section>
@@ -272,7 +276,11 @@
       <fieldset>
         <legend>While breathing</legend>
         <label class="switch"><input type="checkbox" data-setting="tones"> <span>Soft tone when each breath changes</span></label>
-        <label class="switch"><input type="checkbox" data-setting="vibrate"> <span>Short vibration when each breath changes (phones)</span></label>
+        <div id="vibrate-row" class="vibrate-row">
+          <label class="switch"><input type="checkbox" data-setting="vibrate"> <span>Gentle vibration when each breath changes</span></label>
+          <p class="hint" id="vibrate-hint"></p>
+          <button type="button" class="text-btn" id="vibrate-try">Try it</button>
+        </div>
         <label class="switch"><input type="checkbox" data-setting="showCount"> <span>Show the count</span></label>
       </fieldset>
 
