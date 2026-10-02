@@ -1,0 +1,278 @@
+{
+  "title": "What's happening?",
+  "intro": "Pick what's closest. Each one has three short steps: notice it, interrupt it, then finish with something real.",
+  "doneLine": "That's done. You can file this one away.",
+  "moments": [
+    {
+      "id": "replay",
+      "title": "Replaying a conversation",
+      "recognise": {
+        "signs": [
+          "Running back over what you said, or what they said, again and again",
+          "Rehearsing what you should have said instead",
+          "Scanning for signs you got it wrong, or that they're annoyed"
+        ],
+        "naming": "This is a replay. My brain is trying to keep me safe by going over it."
+      },
+      "drills": [
+        { "type": "lines", "name": "Kind pause", "lines": [
+          "If a friend told me they'd said this, what would I say to them?",
+          "Can I say that to myself, even a little?"
+        ], "typeable": true },
+        { "type": "notice", "name": "Notice the thought", "prompt": "Type the line that keeps coming back." }
+      ],
+      "then": {
+        "question": "Is there one small thing I want to do about this?",
+        "hint": "Like sending a short message, or asking a question later.",
+        "yes": "Then pick a time for it, and let it rest until then.",
+        "yesPark": true,
+        "no": "Then it can be done. It happened, it's over, and it doesn't need more of you."
+      },
+      "complete": {
+        "intro": "Something with a clear end:",
+        "actions": [
+          "Make a cup of tea and drink it sitting down",
+          "Wash, dry and put away one cup",
+          "Walk to the end of the road and back"
+        ]
+      }
+    },
+    {
+      "id": "what-if",
+      "title": "\"What if…?\" worrying",
+      "recognise": {
+        "signs": [
+          "Thoughts starting with \"what if…\"",
+          "Jumping to the worst way things could go",
+          "Feeling you have to keep thinking about it, or something bad will happen"
+        ],
+        "naming": "This is worrying about the future. It feels urgent, but it isn't happening right now."
+      },
+      "drills": [
+        { "type": "worryTree", "name": "Worry tree",
+          "first": "What exactly am I worried about?",
+          "firstHint": "A few words, or skip. Nothing you type is kept.",
+          "can": "Is there anything I can do about it?",
+          "cantSay": "Then it's a 'what if' worry. You can let it go for now, or park it for later.",
+          "now": "Can you do it now?",
+          "nowSay": "Then do that one thing. That's your completing step.",
+          "laterSay": "Then plan when."
+        }
+      ],
+      "complete": {
+        "intro": "If you did the one thing, that's it. Otherwise:",
+        "actions": [
+          "Write tomorrow's first small task on a sticky note and put it where you'll see it",
+          "Tidy one surface: clear it, wipe it, done",
+          "Make a snack and eat it"
+        ]
+      }
+    },
+    {
+      "id": "why",
+      "title": "Stuck on \"why?\"",
+      "recognise": {
+        "signs": [
+          "\"Why did I…?\", \"Why am I like this?\", \"Why does this always happen?\"",
+          "Going round in circles without getting anywhere new",
+          "Feeling worse the longer you think, not clearer"
+        ],
+        "naming": "This is a 'why' loop. 'Why' questions rarely have an ending, so my brain keeps going round and round."
+      },
+      "drills": [
+        { "type": "lines", "name": "How, not why", "intro": "Three questions, one at a time. Type, or just think.", "lines": [
+          "How, step by step, did it actually happen? Just the facts, like a camera would see it.",
+          "At which step could something have gone a little differently?",
+          "What's one small thing I'd try next time at that step?"
+        ], "typeable": true, "outro": "That's the useful part of the thinking done. The rest can stop." }
+      ],
+      "complete": {
+        "intro": "",
+        "actions": [
+          "Write your 'next time' line on paper and put it somewhere you'll see it",
+          "Make your bed, or straighten one room",
+          "Take a shower or wash your face, start to finish"
+        ]
+      }
+    },
+    {
+      "id": "repeat",
+      "title": "The same thought on repeat",
+      "recognise": {
+        "signs": [
+          "One sentence, image or tune going round and round",
+          "The harder you try not to think it, the louder it gets",
+          "It feels sticky, like your attention is stuck to it"
+        ],
+        "naming": "This is a sticky thought. I don't have to argue with it or get rid of it."
+      },
+      "drills": [
+        { "type": "notice", "name": "Notice the thought", "prompt": "Type the thought." },
+        { "type": "listen", "name": "Listen in turn", "minutes": 3 }
+      ],
+      "complete": {
+        "intro": "",
+        "actions": [
+          "Put on one song you like and listen to the whole thing",
+          "Do one small hands-on task: fold a basket of washing, water the plants",
+          "Step outside, notice three things, come back in"
+        ]
+      },
+      "helpNote": "If the thought is about harm, contamination or checking, have a look at Get help now."
+    },
+    {
+      "id": "night",
+      "title": "Can't switch off at night",
+      "recognise": {
+        "signs": [
+          "Tired body, busy mind",
+          "Lists, plans or the day's moments replaying in bed",
+          "Checking the time and worrying about not sleeping"
+        ],
+        "naming": "This is a busy mind at bedtime. It's trying to finish the day's business."
+      },
+      "drills": [
+        { "type": "brainDump", "name": "Brain dump", "prompt": "Type everything that's in your head, in any order. Half-sentences are fine." },
+        { "type": "link", "name": "Rain and a dim screen", "href": "#calm?mix=rain-room&visual=still&minutes=30" }
+      ],
+      "complete": {
+        "intro": "Keep it small and quiet:",
+        "actions": [
+          "Put the phone face down, out of reach",
+          "Get a glass of water, drink half, set it by the bed",
+          "Turn the light off yourself, as a deliberate \"day over\" moment"
+        ]
+      }
+    },
+    {
+      "id": "critic",
+      "title": "A harsh inner voice",
+      "recognise": {
+        "signs": [
+          "Calling yourself names, or \"you always…\" / \"you never…\"",
+          "A tone you'd never use with someone else",
+          "Feeling smaller, or wanting to hide"
+        ],
+        "naming": "This is my inner critic. I hear it because it speaks loudly, not because it speaks the truth."
+      },
+      "drills": [
+        { "type": "lines", "name": "Kind pause", "intro": "Hand on your chest or arm, if that feels okay.", "lines": [
+          "This is a hard moment.",
+          "Lots of people feel like this. I'm not the only one.",
+          "Can I be a little kinder to myself right now?"
+        ], "outro": "What would someone who cares about me say? Think it, or type it.", "typeable": true }
+      ],
+      "complete": {
+        "intro": "",
+        "actions": [
+          "Do one small kind thing for your body: a glass of water, a warm drink, a jumper",
+          "Send a short hello to someone safe (no need to explain)",
+          "Write down one thing you did today, however small, and leave it at that"
+        ]
+      }
+    },
+    {
+      "id": "shutdown",
+      "title": "Shutdown",
+      "lowDemand": true,
+      "recognise": {
+        "signs": [
+          "Going quiet, numb or far away",
+          "Words, decisions or moving feel hard or impossible",
+          "Wanting to be under a blanket, in the dark, alone"
+        ],
+        "naming": "This may be a shutdown. My system is protecting me. Nothing needs to happen right now."
+      },
+      "drills": [
+        { "type": "link", "name": "Still and quiet", "href": "#calm?mix=quiet-room&visual=still" },
+        { "type": "lines", "name": "Press and let go", "lines": ["Press your palms together. Then let go."] }
+      ],
+      "complete": {
+        "intro": "Only when you're ready:",
+        "actions": [
+          "Take a sip of water",
+          "Change position: sit up, or lie the other way",
+          "Wrap something soft or heavy around you"
+        ],
+        "closing": "You came back a little. That's enough for now."
+      }
+    },
+    {
+      "id": "demand",
+      "title": "When \"I have to\" makes it impossible",
+      "recognise": {
+        "signs": [
+          "A strong \"no\" the moment something becomes a must, even things you want to do",
+          "Anxiety or irritation rising as the pressure builds",
+          "Doing anything except the thing"
+        ],
+        "naming": "This is my brain reacting to a demand. I am not lazy. My body is reacting as if there is a threat."
+      },
+      "drills": [
+        { "type": "changeWords", "name": "Change the words", "prompt": "What's the thing? Just a few words.", "frames": ["I could {x}.", "I wonder if I'll {x}.", "I might {x}, or I might not.", "Maybe later I'll {x}."] },
+        { "type": "lines", "name": "Make it smaller", "lines": ["What's the tiniest piece of this?", "Smaller than that?"], "typeable": true },
+        { "type": "lines", "name": "Make it yours", "lines": ["Is there a way to do it that's more fun, different, or more your own?"], "typeable": true },
+        { "type": "lines", "name": "Permission", "lines": ["You're allowed to not do it right now."], "outro": "Sometimes that's what lets it happen." }
+      ],
+      "complete": {
+        "intro": "Either:",
+        "actions": [
+          "Do the tiniest piece, start to finish, then stop (stopping is allowed)",
+          "Decide \"not now\" and pick a time. Deciding is a finish too."
+        ],
+        "parkAction": 1
+      }
+    },
+    {
+      "id": "hangover",
+      "title": "Sensory or social hangover",
+      "recognise": {
+        "lead": "You might notice, after an event, a busy day or being around lots of people:",
+        "signs": [
+          "Drained, flat or irritable, even if it went well",
+          "Sounds, light or touch feel harder than usual",
+          "Replaying the event, or not wanting to talk to anyone"
+        ],
+        "naming": "This is a hangover from a lot of input. My battery is low. Social processing uses a lot of bandwidth."
+      },
+      "drills": [
+        { "type": "link", "name": "Turn the input down", "href": "#calm?mix=quiet-room&visual=still", "theme": "dim" },
+        { "type": "lines", "name": "Not now for the replay", "lines": ["You can look back on the event later, if you want to. Not tonight."], "park": true }
+      ],
+      "complete": {
+        "intro": "A recovery ritual with a clear end:",
+        "actions": [
+          "Change into soft clothes. Taking off the day's clothes can be a \"costume off\" moment.",
+          "Shower or bath, start to finish",
+          "Make a simple, familiar food and eat it somewhere quiet"
+        ],
+        "closing": "Recharging is part of the day, not just an added extra."
+      }
+    }
+  ],
+  "help": {
+    "title": "Get help now",
+    "urgentTitle": "If you're in danger or thinking about ending your life",
+    "urgent": [
+      { "who": "Emergency services", "how": "Call 112 or 999", "tel": "112" },
+      { "who": "Samaritans", "how": "Call 116 123, free, any time", "tel": "116123" },
+      { "who": "Pieta", "how": "Call 1800 247 247, any time", "tel": "1800247247" },
+      { "who": "Pieta by text", "how": "Text HELP to 51444", "sms": "51444", "body": "HELP" },
+      { "who": "Text About It", "how": "Text HELLO to 50808, free, any time", "sms": "50808", "body": "HELLO" }
+    ],
+    "soonTitle": "If loops are taking over",
+    "soonIntro": "See your GP, or talk to a qualified therapist. It may be time if:",
+    "soon": [
+      "Loops happen most days for two weeks or more, or get in the way of sleep, work or relationships",
+      "Loops are about harm, contamination or something bad happening, with urges to check, repeat or seek reassurance. A specialist approach for OCD (exposure and response prevention) helps more than these drills, and some drills here can accidentally feed it.",
+      "You have thoughts about not wanting to be here, even if they come and go"
+    ],
+    "ongoingTitle": "Ongoing support",
+    "ongoing": "Nervous Ground is made by Brian Boland, psychotherapist (IACP), in Marino, Dublin 3 and online.",
+    "practiceUrl": "https://brianbolandpsychotherapy.ie/",
+    "practiceLabel": "Brian Boland Psychotherapy",
+    "directoryNote": "You can also find a therapist near you through the IACP.",
+    "directoryUrl": "https://iacp.ie/",
+    "privacy": "This is a self-help tool, not therapy or medical care. Nothing you type leaves your phone, and nothing typed is kept."
+  }
+}

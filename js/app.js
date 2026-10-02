@@ -2,6 +2,7 @@ import * as store from "./store.js";
 import * as sound from "./sound.js";
 import { PATTERNS, MINUTES, createSession, practicePattern } from "./breath.js";
 import { createRings } from "./rings.js";
+import * as loops from "./loops.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -448,6 +449,7 @@ $("#calm-exit").addEventListener("click", () => history.length > 1 ? history.bac
 
 function enterCalm(params) {
   document.body.classList.add("in-calm");
+  if (params.get("theme")) { document.documentElement.dataset.theme = params.get("theme"); calmRings.redraw(); }
   calmStill = params.get("visual") === "still";
   $("#calm-visual").textContent = calmStill ? "Let it move" : "Make it still";
   const mix = params.get("mix");
@@ -469,13 +471,22 @@ function updateCalmClock() {
 }
 function leaveCalm() {
   document.body.classList.remove("in-calm");
+  document.documentElement.dataset.theme = store.get("theme");
   calmRings.stop();
   clearInterval(calmClock);
   clearTimeout(calmFadeTimer);
 }
 
+/* ---------------- worry time ---------------- */
+function showWorryBanner() {
+  $("#worry-banner").hidden = !loops.worryTimeDue();
+}
+$("#worry-dismiss").addEventListener("click", () => { loops.clearWorryTime(); showWorryBanner(); });
+$("#worry-go").addEventListener("click", () => { loops.clearWorryTime(); });
+
 /* ---------------- router ---------------- */
-const VIEWS = ["home", "breathe", "sounds", "library", "calm", "settings"];
+const VIEWS = ["home", "breathe", "sounds", "library", "calm", "settings", "loops", "loop", "help"];
+const TAB_FOR = { loop: "loops", help: "loops" };
 let currentView = null;
 
 function route() {
@@ -488,8 +499,9 @@ function route() {
 
   $$(".view").forEach((v) => { v.hidden = v.dataset.view !== view; });
   $$(".tabs a").forEach((a) => {
-    a.toggleAttribute("aria-current", a.dataset.tab === view);
-    if (a.dataset.tab === view) a.setAttribute("aria-current", "page");
+    const tab = TAB_FOR[view] || view;
+    a.toggleAttribute("aria-current", a.dataset.tab === tab);
+    if (a.dataset.tab === tab) a.setAttribute("aria-current", "page");
   });
 
   if (view === "breathe") {
@@ -504,6 +516,11 @@ function route() {
     }
   }
   if (view === "sounds") syncMixer();
+  if (currentView === "loop" && view !== "loop") loops.leaveLoops();
+  if (view === "loops") loops.renderLoopList($("#loops-view"));
+  if (view === "loop") loops.renderLoop($("#loop-view"), params);
+  if (view === "help") loops.renderHelp($("#help-view"));
+  if (view === "home") showWorryBanner();
   if (view === "calm") enterCalm(params);
 
   if (view !== currentView) {

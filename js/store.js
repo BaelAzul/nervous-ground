@@ -19,6 +19,7 @@ const defaults = {
   practiceMinutes: 5,
   practiceLog: [],
   background: "none",
+  worryTime: null, // only the time someone chose to come back to a worry; never the words
 };
 
 let state = { ...defaults };

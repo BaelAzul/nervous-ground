@@ -1,10 +1,10 @@
 // Keeps Nervous Ground working offline once it has been opened.
 // Bump VERSION whenever app files change so phones pick up the new version.
-const VERSION = "ng-2";
+const VERSION = "ng-3";
 const SHELL = [
   "./", "index.html", "css/app.css",
-  "js/app.js", "js/store.js", "js/sound.js", "js/breath.js", "js/rings.js",
-  "library.json", "manifest.webmanifest",
+  "js/app.js", "js/store.js", "js/sound.js", "js/breath.js", "js/rings.js", "js/loops.js",
+  "library.json", "loops.json", "manifest.webmanifest",
   "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
 ];
 
@@ -39,7 +39,7 @@ self.addEventListener("fetch", (e) => {
   }
 
   // The library list: try the network first so new items show up, fall back offline.
-  if (url.pathname.endsWith("library.json")) {
+  if (url.pathname.endsWith("library.json") || url.pathname.endsWith("loops.json")) {
     e.respondWith(fetch(req).then((res) => {
       const copy = res.clone();
       caches.open(VERSION).then((c) => c.put(req, copy));

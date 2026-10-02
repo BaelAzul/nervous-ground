@@ -38,6 +38,15 @@ in the player, and the background dips automatically while you're speaking.
 - `"kind": "breath"` with `"pattern"` (`longer-out`, `sigh`, `box`, `even`, `4-7-8`) and `"minutes"`.
 - `"kind": "soundscape"` with `"mix"` (`quiet-room`, `rain-room`, `low-tide`, `soft-focus`) and optional `"minutes"`.
 
+## Thought loops and hard moments
+
+All the wording for the Loops section lives in `loops.json`, so it can be changed without touching code.
+Each moment has `recognise` (signs + naming line), `drills` (the interrupt options) and `complete`
+(the real-world finishing actions). Drill types: `lines`, `notice`, `worryTree`, `listen`, `brainDump`,
+`link`, `changeWords`. The `help` block holds the crisis contacts and practice details shown on Get help now.
+
+Nothing typed in this section is ever saved. "Park it" keeps only the chosen time.
+
 ## Files
 
 - `index.html` – the page
@@ -46,4 +55,5 @@ in the player, and the background dips automatically while you're speaking.
 - `js/breath.js` – breathing patterns
 - `js/sound.js` – generated sounds and mixes
 - `js/rings.js` – the breathing shape
+- `js/loops.js` – the thought loops section (wording in `loops.json`)
 - `sw.js` – offline support. Change `VERSION` when you change app files.

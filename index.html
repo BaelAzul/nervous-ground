@@ -36,6 +36,13 @@
 
     <!-- HOME -->
     <section class="view" data-view="home" aria-labelledby="home-title">
+      <div class="worry-banner" id="worry-banner" hidden>
+        <p>This is your worry time, if you want it.</p>
+        <div class="row">
+          <a class="primary" href="#loop?id=what-if&amp;step=2" id="worry-go">Go to the worry tree</a>
+          <button type="button" class="secondary" id="worry-dismiss">Not needed</button>
+        </div>
+      </div>
       <h1 id="home-title" class="home-title">What would help right now?</h1>
       <ul class="needs">
         <li><a href="#breathe?pattern=longer-out&amp;minutes=3" class="need">
@@ -49,6 +56,10 @@
         <li><a href="#calm?mix=low-tide&amp;minutes=10" class="need">
           <span class="need-name">Rest when I'm drained</span>
           <span class="need-note">Ten minutes of slow waves. Nothing to do.</span>
+        </a></li>
+        <li><a href="#loops" class="need">
+          <span class="need-name">Get out of a loop</span>
+          <span class="need-note">Replaying, worrying, shutdown and other hard moments</span>
         </a></li>
         <li><a href="#library" class="need">
           <span class="need-name">Find something to listen to</span>
@@ -190,6 +201,11 @@
       </div>
     </section>
 
+    <!-- THOUGHT LOOPS -->
+    <section class="view" data-view="loops" id="loops-view" hidden></section>
+    <section class="view loop-view" data-view="loop" id="loop-view" hidden></section>
+    <section class="view help-view" data-view="help" id="help-view" hidden></section>
+
     <!-- SETTINGS -->
     <section class="view" data-view="settings" aria-labelledby="settings-title" hidden>
       <h1 id="settings-title">Settings</h1>
@@ -231,7 +247,9 @@
       <section class="about" aria-labelledby="about-title">
         <h2 id="about-title">About</h2>
         <p>Nervous Ground is a self-regulation tool. It isn't therapy or medical care, and it can't help in an emergency.</p>
-        <p>If you're in crisis in Ireland, call <a href="tel:112">112</a> or <a href="tel:999">999</a>, or Samaritans free on <a href="tel:116123">116 123</a>, any time.</p>
+        <p>If you're in crisis in Ireland, call <a href="tel:112">112</a> or <a href="tel:999">999</a>, or Samaritans free on <a href="tel:116123">116 123</a>, any time. <a href="#help">More places to get help</a>.</p>
+        <p>Nothing you type in Nervous Ground is kept, and nothing leaves your phone.</p>
+        <p>Made by Brian Boland, psychotherapist (IACP), Marino, Dublin 3 and online. <a href="https://brianbolandpsychotherapy.ie/" target="_blank" rel="noopener">brianbolandpsychotherapy.ie</a></p>
       </section>
     </section>
   </main>
@@ -240,6 +258,7 @@
     <a href="#home" data-tab="home">Home</a>
     <a href="#breathe" data-tab="breathe">Breathe</a>
     <a href="#sounds" data-tab="sounds">Sounds</a>
+    <a href="#loops" data-tab="loops">Loops</a>
     <a href="#library" data-tab="library">Library</a>
   </nav>
 
