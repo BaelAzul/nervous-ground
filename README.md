@@ -1,4 +1,4 @@
-# Nervous Ground
+# Ebbly
 
 A quiet web app for neurodivergent people dealing with overstimulation, overwhelm and burnout:
 breathing guides, calming sounds made in the browser, a calm space with slow visuals,

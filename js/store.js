@@ -1,5 +1,5 @@
 // Settings and small preferences, kept on this device only.
-const KEY = "nervous-ground:v1";
+const KEY = "nervous-ground:v1"; // internal storage name; kept from the app's first name so saved settings carry over
 
 const defaults = {
   theme: "dusk",

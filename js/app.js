@@ -383,7 +383,7 @@ function playRecording(it) {
   $("#player-title").textContent = it.title;
   $("#player-toggle").textContent = "Pause";
   if ("mediaSession" in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({ title: it.title, artist: "Nervous Ground" });
+    navigator.mediaSession.metadata = new MediaMetadata({ title: it.title, artist: "Ebbly" });
   }
 }
 function fadeAudio(to, then) {
