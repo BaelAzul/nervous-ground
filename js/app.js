@@ -1,6 +1,6 @@
 import * as store from "./store.js";
 import * as sound from "./sound.js";
-import { PATTERNS, MINUTES, createSession } from "./breath.js";
+import { PATTERNS, MINUTES, createSession, practicePattern } from "./breath.js";
 import { createRings } from "./rings.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -66,6 +66,12 @@ const cueEl = $("#breath-cue");
 const countEl = $("#breath-count");
 const remainingEl = $("#breath-remaining");
 const toggleBtn = $("#breath-toggle");
+const notHelping = $("#not-helping");
+const round1 = (n) => Math.round(n * 10) / 10;
+const bpmText = (n) => `${round1(n).toString().replace(/\.0$/, "")}`;
+
+let practice = null; // the running practice pattern, if any
+let practiceStartRate = 0;
 
 const session = createSession({
   onStep(step) {
@@ -73,18 +79,33 @@ const session = createSession({
     if (store.get("tones") && step.kind !== "hold") sound.cue(step.kind);
     if (store.get("vibrate")) navigator.vibrate?.(step.kind === "hold" ? 15 : 30);
   },
-  onTick({ secondsLeftInStep, remaining }) {
+  onTick({ secondsLeftInStep, remaining, step }) {
     countEl.textContent = store.get("showCount") ? String(secondsLeftInStep) : "";
-    remainingEl.textContent = remaining == null ? "" : `${fmt(remaining)} left`;
+    const left = remaining == null ? "" : `${fmt(remaining)} left`;
+    remainingEl.textContent = practice && step.bpm
+      ? `${bpmText(step.bpm)} breaths a minute${left ? `. ${left}` : ""}`
+      : left;
   },
   onDone() {
     if (store.get("tones")) sound.cue("end");
-    cueEl.textContent = "Done. Stay as long as you like.";
     countEl.textContent = "";
-    remainingEl.textContent = "";
+    if (practice) {
+      const reached = practice.reached;
+      logPractice(store.get("practiceMinutes"), practiceStartRate, reached);
+      cueEl.textContent = "Done. Stay as long as you like.";
+      remainingEl.textContent = summaryText(practiceStartRate, reached);
+    } else {
+      cueEl.textContent = "Done. Stay as long as you like.";
+      remainingEl.textContent = "";
+    }
     stopBreathing(true);
   },
 });
+
+function summaryText(from, to) {
+  if (Math.abs(from - to) < 0.3) return `You breathed with the guide at about ${bpmText(to)} a minute.`;
+  return `You eased from ${bpmText(from)} to ${bpmText(to)} breaths a minute.`;
+}
 
 const breathRings = createRings($("#breath-canvas"), {
   getSize: () => session.size,
@@ -93,30 +114,129 @@ const breathRings = createRings($("#breath-canvas"), {
 
 function startBreathing() {
   sound.unlock();
-  session.start(store.get("pattern"), Number(store.get("minutes")));
+  if (store.get("breathMode") === "practice") {
+    practiceStartRate = Number(store.get("practiceFrom"));
+    practice = practicePattern({
+      from: practiceStartRate,
+      to: Number(store.get("practiceTarget")),
+      minutes: Number(store.get("practiceMinutes")),
+      outShare: Number(store.get("practiceShare")),
+    });
+    session.start(practice, Number(store.get("practiceMinutes")));
+    notHelping.hidden = false;
+  } else {
+    practice = null;
+    session.start(store.get("pattern"), Number(store.get("minutes")));
+  }
   breathView.classList.add("breathing");
   toggleBtn.textContent = "Stop";
 }
 function stopBreathing(finished = false) {
+  if (!finished && practice && session.running && session.elapsed >= 60000) {
+    // Stopping early still counts. Nothing is lost by stopping.
+    logPractice(Math.round(session.elapsed / 60000), practiceStartRate, practice.reached);
+    remainingEl.textContent = summaryText(practiceStartRate, practice.reached);
+    session.stop(); session.settle();
+    breathView.classList.remove("breathing");
+    toggleBtn.textContent = "Go again";
+    cueEl.textContent = "Stopped. That's fine.";
+    countEl.textContent = "";
+    notHelping.hidden = true;
+    practice = null;
+    return;
+  }
   session.stop();
   session.settle();
   breathView.classList.remove("breathing");
+  notHelping.hidden = true;
   toggleBtn.textContent = finished ? "Go again" : "Start";
   if (!finished) {
     cueEl.textContent = "Ready when you are";
     countEl.textContent = "";
     remainingEl.textContent = "";
   }
+  practice = null;
 }
 toggleBtn.addEventListener("click", () => (session.running ? stopBreathing() : startBreathing()));
 
 function renderBreathOptions() {
+  const mode = store.get("breathMode");
+  pressChoice($("#breath-mode"), mode);
+  $("#breath-options").hidden = mode !== "patterns";
+  $("#practice-options").hidden = mode !== "practice";
+
   buildChoices($("#pattern-choices"), Object.entries(PATTERNS).map(([id, p]) => [id, p.name]),
     store.get("pattern"), (v) => { store.set("pattern", v); $("#pattern-hint").textContent = PATTERNS[v].hint; });
   $("#pattern-hint").textContent = PATTERNS[store.get("pattern")]?.hint || "";
   buildChoices($("#minute-choices"), MINUTES.map((m) => [m, minutesLabel(m)]),
     store.get("minutes"), (v) => store.set("minutes", Number(v)));
+
+  buildChoices($("#start-choices"), [8, 10, 12, 14, 16].map((n) => [n, String(n)]),
+    store.get("practiceFrom"), (v) => { store.set("practiceFrom", Number(v)); $("#tap-status").textContent = `Starting at ${v} breaths a minute.`; });
+  buildChoices($("#target-choices"), [[4.5, "4.5"], [5, "5"], [5.5, "5.5"], [6, "6"], [7, "7"], [8, "8"]],
+    store.get("practiceTarget"), (v) => store.set("practiceTarget", Number(v)));
+  buildChoices($("#share-choices"), [[0.5, "Same as the in-breath"], [0.6, "A little longer"], [0.67, "Twice as long"]],
+    store.get("practiceShare"), (v) => store.set("practiceShare", Number(v)));
+  buildChoices($("#practice-minutes"), [3, 5, 10, 15].map((m) => [m, `${m} min`]),
+    store.get("practiceMinutes"), (v) => store.set("practiceMinutes", Number(v)));
+  renderHistory();
 }
+
+$$("button", $("#breath-mode")).forEach((b) => b.addEventListener("click", () => {
+  if (session.running) stopBreathing();
+  store.set("breathMode", b.dataset.value);
+  renderBreathOptions();
+}));
+
+// Find your rate: tap at the start of each in-breath.
+let taps = [];
+let tapReset = 0;
+$("#tapper").addEventListener("click", (e) => {
+  const now = performance.now();
+  const btn = e.currentTarget;
+  btn.classList.add("pulse");
+  setTimeout(() => btn.classList.remove("pulse"), 250);
+  clearTimeout(tapReset);
+  tapReset = setTimeout(() => { taps = []; }, 30000);
+  if (taps.length && now - taps[taps.length - 1] > 20000) taps = [];
+  taps.push(now);
+  const status = $("#tap-status");
+  if (taps.length < 4) {
+    status.textContent = taps.length === 1 ? "Got it. Keep breathing normally and tap at each in-breath." : `${taps.length} so far. A few more.`;
+    return;
+  }
+  const recent = taps.slice(-6);
+  const gaps = recent.slice(1).map((t, i) => t - recent[i]);
+  const avg = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+  const rate = Math.min(24, Math.max(4, Math.round((60000 / avg) * 2) / 2));
+  store.set("practiceFrom", rate);
+  pressChoice($("#start-choices"), rate);
+  status.textContent = `About ${bpmText(rate)} breaths a minute. The guide will start there.`;
+});
+
+function logPractice(minutes, from, to) {
+  if (!minutes) return;
+  const log = [{ at: new Date().toISOString(), minutes, from: round1(from), to: round1(to), target: store.get("practiceTarget") },
+    ...(store.get("practiceLog") || [])].slice(0, 30);
+  store.set("practiceLog", log);
+  renderHistory();
+}
+function renderHistory() {
+  const log = store.get("practiceLog") || [];
+  const list = $("#history-list");
+  list.innerHTML = "";
+  log.slice(0, 10).forEach((e) => {
+    const li = document.createElement("li");
+    const when = new Date(e.at).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+    li.innerHTML = `<span class="when"></span><span class="what"></span>`;
+    $(".when", li).textContent = when;
+    $(".what", li).textContent = `${e.minutes} min, ${bpmText(e.from)} to ${bpmText(e.to)} breaths a minute`;
+    list.append(li);
+  });
+  $("#history-empty").hidden = log.length > 0;
+  $("#history-clear").hidden = log.length === 0;
+}
+$("#history-clear").addEventListener("click", () => { store.set("practiceLog", []); renderHistory(); });
 
 /* ---------------- sounds ---------------- */
 const mixer = $("#mixer");
@@ -195,7 +315,7 @@ async function loadLibrary() {
   renderLibrary();
 }
 
-const KIND_LABEL = { breath: "Breathing", soundscape: "Soundscape", audio: "Recording" };
+const KIND_LABEL = { breath: "Breathing", soundscape: "Soundscape", audio: "Recording", meditation: "Meditation" };
 
 function renderLibrary() {
   const list = $("#library-list");
@@ -231,15 +351,30 @@ function openItem(it) {
     location.hash = "#breathe?autostart=1";
   } else if (it.kind === "soundscape") {
     location.hash = `#calm?mix=${encodeURIComponent(it.mix)}${it.minutes ? `&minutes=${it.minutes}` : ""}`;
-  } else if (it.kind === "audio") {
+  } else if (it.kind === "audio" || it.kind === "meditation") {
     playRecording(it);
   }
 }
 
+function applyBackground(id) {
+  if (id === "none") sound.stopAll();
+  else sound.playMix(id, Object.fromEntries(Object.entries(sound.MIXES[id]).map(([k, v]) => [k, v * 0.7])));
+}
+buildChoices($("#bg-choices"), sound.BACKGROUNDS, store.get("background"), (v) => {
+  store.set("background", v);
+  store.set("backgroundChosen", true);
+  if (current) applyBackground(v);
+});
+
 function playRecording(it) {
   current = it;
+  sound.attachVoice(audio);
   audio.src = it.src;
   audio.volume = 0;
+  const bg = it.background && !store.get("backgroundChosen") ? it.background : store.get("background");
+  pressChoice($("#bg-choices"), bg);
+  applyBackground(bg);
+  sound.startDucking();
   audio.play().then(() => fadeAudio(1)).catch(() => {
     $("#player-time").textContent = "This recording couldn't play. Check the file is in the audio folder.";
   });
@@ -266,6 +401,8 @@ $("#player-toggle").addEventListener("click", () => {
 $("#player-back").addEventListener("click", () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
 $("#player-stop").addEventListener("click", () => {
   fadeAudio(0, () => { audio.pause(); audio.removeAttribute("src"); audio.load(); });
+  sound.stopDucking();
+  if (store.get("background") !== "none") sound.stopAll();
   $("#player").hidden = true;
   current = null;
 });
@@ -277,6 +414,8 @@ audio.addEventListener("timeupdate", () => {
 audio.addEventListener("ended", () => {
   $("#player-toggle").textContent = "Play";
   $("#player-time").textContent = "Finished";
+  sound.stopDucking();
+  if (sound.anyOn()) sound.fadeOutAfter(1); // let the background carry on for a minute, then fade
 });
 
 /* ---------------- calm space ---------------- */
@@ -354,7 +493,8 @@ function route() {
   });
 
   if (view === "breathe") {
-    if (params.get("pattern") && PATTERNS[params.get("pattern")]) store.set("pattern", params.get("pattern"));
+    if (params.get("pattern") && PATTERNS[params.get("pattern")]) { store.set("pattern", params.get("pattern")); store.set("breathMode", "patterns"); }
+    if (params.get("mode") === "practice") store.set("breathMode", "practice");
     if (params.has("minutes")) store.set("minutes", Number(params.get("minutes")));
     renderBreathOptions();
     breathRings.start();

@@ -15,13 +15,24 @@ export const MIXES = {
   "low-tide": { waves: 0.6, drone: 0.25 },
   "rain-room": { rain: 0.55, brown: 0.25 },
   "soft-focus": { pink: 0.35, drone: 0.2 },
+  "warm-hum": { drone: 0.4 },
 };
+
+// Background choices offered under a recording.
+export const BACKGROUNDS = [
+  ["none", "No background"],
+  ["rain-room", "Rain"],
+  ["low-tide", "Waves"],
+  ["quiet-room", "Low noise"],
+  ["warm-hum", "Warm hum"],
+];
 
 const FADE = 2.5;      // seconds to fade a sound in or out
 const MAX_OUT = 0.55;  // overall ceiling so nothing is ever loud
 
 let ctx = null;
 let master = null;
+let bed = null;          // background sounds pass through here so they can dip under a voice
 let buffers = {};
 const active = new Map(); // id -> { gain, stop() }
 const listeners = new Set();
@@ -39,6 +50,9 @@ function ensureContext() {
   master = ctx.createGain();
   master.gain.value = MAX_OUT;
   master.connect(ctx.destination);
+  bed = ctx.createGain();
+  bed.gain.value = 1;
+  bed.connect(master);
   return ctx;
 }
 
@@ -156,7 +170,7 @@ export function turnOn(id, level = 0.5) {
   if (active.has(id)) { setLevel(id, level); return; }
   const gain = ctx.createGain();
   gain.gain.value = 0;
-  gain.connect(master);
+  gain.connect(bed);
   const stop = build(id, gain);
   gain.gain.setTargetAtTime(level, ctx.currentTime, FADE / 3);
   active.set(id, { gain, stop });
@@ -220,3 +234,43 @@ export function cue(kind) {
 
 // Called from a tap or click so browsers allow sound later on.
 export function unlock() { ensureContext(); }
+
+// Play a recording (an <audio> element) through the same sound system, so the
+// background can dip gently while the voice is speaking and rise in the pauses.
+let voice = null;
+let duckTimer = 0;
+export function attachVoice(audioEl) {
+  ensureContext();
+  if (voice) return true;
+  try {
+    const src = ctx.createMediaElementSource(audioEl);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    src.connect(analyser);
+    src.connect(ctx.destination); // the voice itself is not capped by the background ceiling
+    voice = { analyser, data: new Float32Array(analyser.fftSize), level: 0 };
+    return true;
+  } catch {
+    return false; // older browsers: recording still plays, background just won't dip
+  }
+}
+export function startDucking() {
+  if (!voice) return;
+  clearInterval(duckTimer);
+  let quietFor = 0;
+  duckTimer = setInterval(() => {
+    voice.analyser.getFloatTimeDomainData(voice.data);
+    let sum = 0;
+    for (const v of voice.data) sum += v * v;
+    const rms = Math.sqrt(sum / voice.data.length);
+    const speaking = rms > 0.02;
+    quietFor = speaking ? 0 : quietFor + 1;
+    // dip quickly when the voice starts; come back up slowly after ~1.5s of quiet
+    if (speaking) bed.gain.setTargetAtTime(0.4, ctx.currentTime, 0.25);
+    else if (quietFor > 15) bed.gain.setTargetAtTime(1, ctx.currentTime, 1.2);
+  }, 100);
+}
+export function stopDucking() {
+  clearInterval(duckTimer);
+  if (bed) bed.gain.setTargetAtTime(1, ctx.currentTime, 1);
+}

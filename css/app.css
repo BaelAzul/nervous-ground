@@ -167,6 +167,30 @@ legend { font-weight: 700; margin-bottom: .6rem; padding: 0; }
 .breath-controls .primary { min-width: 10rem; }
 .breathing .options { opacity: .35; pointer-events: none; transition: opacity .5s ease; }
 
+.mode-switch { justify-content: center; margin: 0 0 .5rem; }
+.pace { color: var(--lichen); }
+.not-helping { text-align: center; margin: -1rem auto 2rem; font-size: var(--step-0); }
+.not-helping[hidden] { display: none; }
+.kind-words {
+  border-left: 3px solid var(--breath); padding: .25rem 0 .25rem 1rem; margin: 0 0 1.75rem;
+}
+.kind-words p { color: var(--lichen); font-size: var(--step-0); margin-bottom: .6rem; }
+.kind-words p:last-child { margin-bottom: 0; }
+.tapper {
+  display: block; width: 100%; min-height: 96px; padding: 1rem;
+  border: 1px dashed var(--lichen); border-radius: var(--radius-panel);
+  background: transparent; cursor: pointer; font-size: var(--step-1);
+  transition: background-color .25s ease;
+}
+.tapper.pulse { background: color-mix(in srgb, var(--breath) 22%, transparent); }
+.history { margin-top: 2rem; }
+.history h2 { font-size: var(--step-1); }
+.history-list { list-style: none; padding: 0; margin: 0 0 .5rem; }
+.history-list li { padding: .6rem 0; border-bottom: 1px solid var(--line); font-size: var(--step-0); }
+.history-list .when { color: var(--lichen); display: block; }
+.text-btn { background: none; border: 0; padding: .5rem 0; color: var(--lichen); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; font-size: var(--step-0); }
+.options[hidden] { display: none; }
+
 /* ---------- sounds ---------- */
 .mixer { list-style: none; padding: 0; margin: 1.5rem 0 2rem; border-top: 1px solid var(--line); }
 .mix-row {
@@ -210,6 +234,8 @@ input[type="range"] { flex: 1; accent-color: var(--breath); height: 32px; }
 .player-time { color: var(--lichen); margin: 0; font-size: var(--step-0); font-variant-numeric: tabular-nums; }
 .player-bar { height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; }
 .player-bar div { height: 100%; width: 0; background: var(--breath); }
+.player-bg-label { margin: 0 0 .4rem; font-size: var(--step-0); color: var(--lichen); }
+.player-bg .choice-row button { min-height: 38px; padding: .2rem .8rem; }
 .player-buttons { display: flex; gap: .5rem; flex-wrap: wrap; }
 .player-buttons .primary, .player-buttons .secondary { min-height: 44px; padding: 0 1.1rem; font-size: var(--step-0); }
 

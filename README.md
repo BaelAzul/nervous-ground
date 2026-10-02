@@ -25,6 +25,10 @@ and a library you can add your own recordings to.
 }
 ```
 
+Use `"kind": "meditation"` for guided meditations. You can add `"background": "rain-room"` to suggest
+a sound underneath (`rain-room`, `low-tide`, `quiet-room`, `warm-hum` or `none`); listeners can change it
+in the player, and the background dips automatically while you're speaking.
+
 `needs` decides which filters it shows under: `overwhelm`, `noise`, `drained`, `settle`, `sleep`.
 
 3. Save to GitHub. Vercel updates the live app within a minute or two.

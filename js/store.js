@@ -12,6 +12,13 @@ const defaults = {
   minutes: 3,
   soundTimer: 0,
   levels: {},
+  breathMode: "patterns",
+  practiceFrom: 10,
+  practiceTarget: 6,
+  practiceShare: 0.6,
+  practiceMinutes: 5,
+  practiceLog: [],
+  background: "none",
 };
 
 let state = { ...defaults };

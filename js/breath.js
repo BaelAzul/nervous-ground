@@ -52,18 +52,48 @@ export const MINUTES = [1, 3, 5, 10, 0]; // 0 = no limit
 
 const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * x);
 
+// A practice "pattern" that changes pace gently over the session:
+// starts at the person's own rate and glides towards the target, never faster than
+// 1 breath a minute per minute, reaching it (at most) about 70% of the way through.
+export function practicePattern({ from, to, minutes, outShare = 0.6 }) {
+  const totalMs = Math.max(1, minutes) * 60000;
+  const rampMs = totalMs * 0.7;
+  const dir = Math.sign(to - from);
+  let last = from;
+  const rateAt = (elapsed) => {
+    const linear = from + (to - from) * Math.min(1, elapsed / rampMs);
+    const capped = from + dir * Math.min(Math.abs(to - from), (elapsed / 60000) * 1.0);
+    // whichever has moved less from the start is the gentler one
+    return Math.abs(linear - from) < Math.abs(capped - from) ? linear : capped;
+  };
+  return {
+    get reached() { return last; },
+    nextSteps(elapsed) {
+      const bpm = rateAt(elapsed);
+      last = bpm;
+      const cycle = 60 / bpm;
+      return [
+        { cue: "Breathe in", kind: "in", secs: cycle * (1 - outShare), to: 1, bpm },
+        { cue: "Breathe out", kind: "out", secs: cycle * outShare, to: 0, bpm },
+      ];
+    },
+  };
+}
+
 export function createSession({ onStep, onTick, onDone }) {
   let pattern = null;
+  let steps = [];
   let stepIndex = 0;
   let stepStart = 0;
   let from = 0;
   let size = 0.35; // resting size before starting
   let endAt = 0;
+  let startedAt = 0;
   let running = false;
   let tickId = 0;
 
   function beginStep(now) {
-    const step = pattern.steps[stepIndex];
+    const step = steps[stepIndex];
     from = size;
     stepStart = now;
     onStep(step, stepIndex);
@@ -72,15 +102,18 @@ export function createSession({ onStep, onTick, onDone }) {
   function frame() {
     if (!running) return;
     const now = performance.now();
-    const step = pattern.steps[stepIndex];
+    const step = steps[stepIndex];
     const p = Math.min(1, (now - stepStart) / (step.secs * 1000));
     size = from + (step.to - from) * ease(p);
     const left = Math.ceil(step.secs - (now - stepStart) / 1000);
-    onTick({ size, secondsLeftInStep: Math.max(1, left), remaining: endAt ? Math.max(0, endAt - Date.now()) : null });
+    onTick({ size, step, secondsLeftInStep: Math.max(1, left), remaining: endAt ? Math.max(0, endAt - Date.now()) : null });
     if (p >= 1) {
-      stepIndex = (stepIndex + 1) % pattern.steps.length;
-      // Only finish at the end of a full breath, never mid-breath.
-      if (stepIndex === 0 && endAt && Date.now() >= endAt) { finish(); return; }
+      stepIndex = (stepIndex + 1) % steps.length;
+      if (stepIndex === 0) {
+        // Only finish at the end of a full breath, never mid-breath.
+        if (endAt && Date.now() >= endAt) { finish(); return; }
+        if (pattern.nextSteps) steps = pattern.nextSteps(Date.now() - startedAt);
+      }
       beginStep(now);
     }
     tickId = requestAnimationFrame(frame);
@@ -93,10 +126,12 @@ export function createSession({ onStep, onTick, onDone }) {
   }
 
   return {
-    start(patternId, minutes) {
-      pattern = PATTERNS[patternId];
+    start(patternOrId, minutes) {
+      pattern = typeof patternOrId === "string" ? PATTERNS[patternOrId] : patternOrId;
+      startedAt = Date.now();
+      steps = pattern.nextSteps ? pattern.nextSteps(0) : pattern.steps;
       stepIndex = 0;
-      endAt = minutes ? Date.now() + minutes * 60000 : 0;
+      endAt = minutes ? startedAt + minutes * 60000 : 0;
       running = true;
       beginStep(performance.now());
       tickId = requestAnimationFrame(frame);
@@ -104,6 +139,7 @@ export function createSession({ onStep, onTick, onDone }) {
     stop() { running = false; cancelAnimationFrame(tickId); },
     get running() { return running; },
     get size() { return size; },
+    get elapsed() { return startedAt ? Date.now() - startedAt : 0; },
     settle() {
       // Ease the shape back to resting size after stopping.
       const startSize = size, t0 = performance.now();

@@ -61,6 +61,10 @@
     <!-- BREATHE -->
     <section class="view" data-view="breathe" aria-labelledby="breathe-title" hidden>
       <h1 id="breathe-title" class="sr-only">Breathe</h1>
+      <div class="choice-row mode-switch" id="breath-mode" role="group" aria-label="Kind of breathing">
+        <button type="button" data-value="patterns">Patterns</button>
+        <button type="button" data-value="practice">Practise slowing</button>
+      </div>
       <div class="stage" id="breath-stage">
         <canvas id="breath-canvas" aria-hidden="true"></canvas>
       </div>
@@ -72,6 +76,47 @@
 
       <div class="breath-controls">
         <button class="primary" id="breath-toggle">Start</button>
+      </div>
+      <p class="not-helping" id="not-helping" hidden>
+        <a href="#calm?mix=quiet-room&amp;visual=still" class="text-link">This isn't helping. Take me somewhere quiet.</a>
+      </p>
+
+      <div class="options practice-options" id="practice-options" hidden>
+        <div class="kind-words">
+          <p>Around six breaths a minute is a pace many people find settling. It's a direction to explore, not a test, and there's no right number.</p>
+          <p>Some days your body will happily slow down. Other days it won't, and that's useful to notice, not a failure. Start where you are, go as far as feels okay, and stop whenever you like.</p>
+        </div>
+
+        <fieldset>
+          <legend>Where you're starting from</legend>
+          <button type="button" class="tapper" id="tapper">Tap here each time you start to breathe in</button>
+          <p class="hint" id="tap-status" aria-live="polite">Breathe as you normally would. Five or six taps is enough.</p>
+          <p class="hint">Or pick a starting pace:</p>
+          <div class="choice-row" id="start-choices"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Explore towards</legend>
+          <div class="choice-row" id="target-choices"></div>
+          <p class="hint">Breaths a minute. The guide drifts towards this slowly, by no more than one breath a minute each minute.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Out-breath</legend>
+          <div class="choice-row" id="share-choices"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>How long</legend>
+          <div class="choice-row" id="practice-minutes"></div>
+        </fieldset>
+
+        <section class="history" aria-labelledby="history-title">
+          <h2 id="history-title">Your practice</h2>
+          <ul class="history-list" id="history-list"></ul>
+          <p class="hint" id="history-empty">Sessions you finish will show here. Only on this device.</p>
+          <button type="button" class="text-btn" id="history-clear" hidden>Clear this list</button>
+        </section>
       </div>
 
       <div class="options" id="breath-options">
@@ -118,6 +163,10 @@
           <p class="player-time" id="player-time"></p>
         </div>
         <div class="player-bar"><div id="player-progress"></div></div>
+        <div class="player-bg">
+          <p class="player-bg-label" id="bg-label">Sound underneath</p>
+          <div class="choice-row" id="bg-choices" role="group" aria-labelledby="bg-label"></div>
+        </div>
         <div class="player-buttons">
           <button class="secondary" id="player-back" aria-label="Back 15 seconds">−15s</button>
           <button class="primary" id="player-toggle">Pause</button>
