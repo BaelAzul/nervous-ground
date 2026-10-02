@@ -405,7 +405,8 @@ const KIND_LABEL = { breath: "Breathing", soundscape: "Soundscape", audio: "Reco
 
 function renderLibrary() {
   const list = $("#library-list");
-  const items = library.items.filter((it) => needFilter === "all" || (it.needs || []).includes(needFilter));
+  const items = library.items.filter((it) => needFilter === "all" || (it.needs || []).includes(needFilter))
+    .sort((a, b) => Number(isNew(b)) - Number(isNew(a))); // new things first
   list.innerHTML = "";
   items.forEach((it) => {
     const li = document.createElement("li");

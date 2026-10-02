@@ -1,6 +1,5 @@
 {
   "newDays": 14,
-  "_howTo": "To add something new, copy one item below, give it a new id, title and description, and set added to today's date (YYYY-MM-DD). It shows as New for newDays days. See ADDING.md.",
   "needs": [
     {
       "id": "overwhelm",

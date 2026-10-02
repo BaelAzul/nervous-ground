@@ -1,0 +1,145 @@
+# Pages CMS (https://app.pagescms.org): a friendly editor for Ebbly's content.
+# Sign in with GitHub, pick the nervous-ground repository, and these show up as forms.
+
+media:
+  - name: audio
+    label: Recordings
+    input: audio
+    output: /audio
+    rename: safe
+    extensions: [mp3, m4a, aac, wav, ogg]
+
+content:
+  - name: library
+    label: Library (sounds, meditations, breathing)
+    type: file
+    path: library.json
+    format: json
+    fields:
+      - name: newDays
+        label: Days something counts as New
+        type: number
+        default: 14
+      - name: needs
+        label: Filters (what people can pick in the library)
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{name}"
+        fields:
+          - name: id
+            label: Short code (no spaces)
+            type: string
+            required: true
+          - name: name
+            label: Name people see
+            type: string
+            required: true
+      - name: items
+        label: Library items
+        description: New items show at the top of the library, and on the home screen, for the number of days above.
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{title}"
+        fields:
+          - name: id
+            label: Short code
+            description: Lowercase with dashes and no spaces, different for every item. For example sea-bull-island.
+            type: string
+            required: true
+          - name: kind
+            label: What kind of thing is it?
+            type: select
+            required: true
+            options:
+              values:
+                - name: meditation
+                  label: Guided meditation (a recording)
+                - name: audio
+                  label: Sound recording (sea, nature, found sounds)
+                - name: soundscape
+                  label: Soundscape made by the app
+                - name: breath
+                  label: Breathing session
+          - name: title
+            label: Title
+            type: string
+            required: true
+          - name: description
+            label: One or two lines about it
+            type: text
+          - name: src
+            label: Recording file
+            description: For meditations and sound recordings. Upload an MP3 here.
+            type: file
+            options:
+              media: audio
+          - name: background
+            label: Sound underneath (meditations only, optional)
+            type: select
+            options:
+              values:
+                - name: low-tide
+                  label: Waves
+                - name: rain-room
+                  label: Rain
+                - name: quiet-room
+                  label: Low noise
+                - name: warm-hum
+                  label: Warm hum
+          - name: minutes
+            label: Length in minutes
+            description: Leave empty for soundscapes that keep going.
+            type: number
+          - name: needs
+            label: Shows under these filters
+            type: select
+            options:
+              multiple: true
+              values: [overwhelm, noise, drained, settle, sleep]
+          - name: pattern
+            label: Breathing pattern (breathing sessions only)
+            type: select
+            options:
+              values:
+                - name: longer-out
+                  label: Longer out-breath
+                - name: sigh
+                  label: Double sigh
+                - name: box
+                  label: Box
+                - name: even
+                  label: Even
+                - name: 4-7-8
+                  label: 4-7-8
+          - name: mix
+            label: Soundscape (soundscapes only)
+            type: select
+            options:
+              values:
+                - name: quiet-room
+                  label: Quiet room
+                - name: low-tide
+                  label: Low tide
+                - name: rain-room
+                  label: Rain room
+                - name: soft-focus
+                  label: Soft focus
+                - name: warm-hum
+                  label: Warm hum
+          - name: added
+            label: Date added
+            description: Today's date makes it show as New.
+            type: date
+            options:
+              format: yyyy-MM-dd
+
+  - name: loops
+    label: Thought loops and Get help now (wording)
+    description: Change the words carefully and keep the quote marks and commas as they are.
+    type: file
+    path: loops.json
+    format: code

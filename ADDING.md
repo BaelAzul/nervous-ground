@@ -1,6 +1,27 @@
 # Adding new things to Ebbly
 
-You can do all of this in your web browser on github.com. Nothing to install.
+## The easy way: the Ebbly editor (Pages CMS)
+
+1. Go to **app.pagescms.org** and sign in with GitHub (the BaelAzul account).
+2. The first time, it asks to be allowed into your repositories. Choose
+   **Only select repositories**, pick **nervous-ground**, and approve.
+3. Open **nervous-ground**. On the left you'll see:
+   - **Library (sounds, meditations, breathing)**: open **Library items**, click **Add an entry**
+     at the bottom, fill in the form, upload the recording with the **Recording file** box, and
+     click **Save**.
+   - **Recordings**: every audio file you've uploaded.
+   - **Thought loops and Get help now (wording)**: the wording, as text. Change only the words
+     between the quote marks.
+4. Ebbly updates by itself a minute or two after you save.
+
+Leave the **Date added** as today so the new thing shows as **New** on the home screen and in
+the library for two weeks.
+
+Keep recordings under about 20 MB. A 10-minute MP3 is usually around 10 MB.
+
+## The other way: straight on github.com
+
+You can also do it all on github.com in your browser. Nothing to install.
 Every change you save goes live on its own within a minute or two.
 
 ## Add a recording (meditation, sea sounds, found sounds)
