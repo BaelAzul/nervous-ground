@@ -1,11 +1,13 @@
 {
   "title": "What's happening?",
+  "ringsNote": "Each moment has its own circles. Change them with \"rings\": ripple, outward, tide, loosen, warm, open, still or fade.",
   "intro": "Pick what's closest. Each one has three short steps: notice it, interrupt it, then finish with something real.",
   "doneLine": "That's done. You can file this one away.",
   "moments": [
     {
       "id": "replay",
       "title": "Replaying a conversation",
+      "rings": "outward",
       "recognise": {
         "signs": [
           "Running back over what you said, or what they said, again and again",
@@ -40,6 +42,7 @@
     {
       "id": "what-if",
       "title": "\"What if…?\" worrying",
+      "rings": "tide",
       "recognise": {
         "signs": [
           "Thoughts starting with \"what if…\"",
@@ -71,6 +74,7 @@
     {
       "id": "why",
       "title": "Stuck on \"why?\"",
+      "rings": "open",
       "recognise": {
         "signs": [
           "\"Why did I…?\", \"Why am I like this?\", \"Why does this always happen?\"",
@@ -98,6 +102,7 @@
     {
       "id": "repeat",
       "title": "The same thought on repeat",
+      "rings": "loosen",
       "recognise": {
         "signs": [
           "One sentence, image or tune going round and round",
@@ -123,6 +128,7 @@
     {
       "id": "night",
       "title": "Can't switch off at night",
+      "rings": "fade",
       "recognise": {
         "signs": [
           "Tired body, busy mind",
@@ -147,6 +153,7 @@
     {
       "id": "critic",
       "title": "A harsh inner voice",
+      "rings": "warm",
       "recognise": {
         "signs": [
           "Calling yourself names, or \"you always…\" / \"you never…\"",
@@ -174,6 +181,7 @@
     {
       "id": "shutdown",
       "title": "Shutdown",
+      "rings": "still",
       "lowDemand": true,
       "recognise": {
         "signs": [
@@ -200,6 +208,7 @@
     {
       "id": "demand",
       "title": "When \"I have to\" makes it impossible",
+      "rings": "open",
       "recognise": {
         "signs": [
           "A strong \"no\" the moment something becomes a must, even things you want to do",
@@ -226,6 +235,7 @@
     {
       "id": "hangover",
       "title": "Sensory or social hangover",
+      "rings": "still",
       "recognise": {
         "lead": "You might notice, after an event, a busy day or being around lots of people:",
         "signs": [

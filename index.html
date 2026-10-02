@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Ebbly</title>
   <meta name="description" content="A quiet place to breathe, block out noise and rest. Breathing guides, calming sounds and a small library, made with neurodivergent people in mind.">
-  <meta name="theme-color" content="#1F2B2A">
+  <meta name="theme-color" content="#252A28">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -13,14 +13,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="top">
-    <a class="wordmark" href="#home" aria-label="Ebbly, home">Ebbly</a>
+    <a class="wordmark" href="#home" aria-label="Ebbly, home">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.5" opacity=".6"/><circle cx="12" cy="12" r="10" opacity=".3"/></svg>
+      <span>Ebbly</span>
+    </a>
     <div class="top-actions">
       <button class="playing" id="playing" aria-label="Stop sounds" hidden>
         <span class="playing-dot" aria-hidden="true"></span>
@@ -43,30 +46,39 @@
           <button type="button" class="secondary" id="worry-dismiss">Not needed</button>
         </div>
       </div>
-      <h1 id="home-title" class="home-title">What would help right now?</h1>
-      <ul class="needs">
-        <li><a href="#breathe?pattern=longer-out&amp;minutes=3" class="need">
-          <span class="need-name">Slow my breathing</span>
-          <span class="need-note">Three minutes, breathing out for longer</span>
+      <div class="home-hero">
+        <canvas id="home-canvas" aria-hidden="true"></canvas>
+      </div>
+      <h1 id="home-title" class="home-title">Hello.</h1>
+      <p class="home-welcome">No rush. Pick whatever feels right, or just stay here with the circles for a bit.</p>
+      <ul class="cards">
+        <li><a href="#breathe?pattern=longer-out&amp;minutes=3" class="card">
+          <span class="pebble" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8"/></svg></span>
+          <span class="card-name">Slow my breathing</span>
+          <span class="card-note">Three minutes, breathing out for longer</span>
         </a></li>
-        <li><a href="#calm?mix=quiet-room&amp;visual=still" class="need">
-          <span class="need-name">Shut out the noise</span>
-          <span class="need-note">Steady low sound and a still, dim screen</span>
+        <li><a href="#calm?mix=quiet-room&amp;visual=still" class="card">
+          <span class="pebble" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.5 4.5a8 8 0 1 0 4 10.5 6.5 6.5 0 0 1-4-10.5z"/></svg></span>
+          <span class="card-name">Shut out the noise</span>
+          <span class="card-note">Steady low sound and a still, dim screen</span>
         </a></li>
-        <li><a href="#calm?mix=low-tide&amp;minutes=10" class="need">
-          <span class="need-name">Rest when I'm drained</span>
-          <span class="need-note">Ten minutes of slow waves. Nothing to do.</span>
+        <li><a href="#calm?mix=low-tide&amp;minutes=10" class="card">
+          <span class="pebble" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg></span>
+          <span class="card-name">Rest when I'm drained</span>
+          <span class="card-note">Ten minutes of slow waves. Nothing to do.</span>
         </a></li>
-        <li><a href="#loops" class="need">
-          <span class="need-name">Get out of a loop</span>
-          <span class="need-note">Replaying, worrying, shutdown and other hard moments</span>
+        <li><a href="#loops" class="card">
+          <span class="pebble" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 12c-2.5-3-7-3-7 0s4.5 3 7 0 7-3 7 0-4.5 3-7 0z"/></svg></span>
+          <span class="card-name">Get out of a loop</span>
+          <span class="card-note">Replaying, worrying, shutdown and other hard moments</span>
         </a></li>
-        <li><a href="#library" class="need">
-          <span class="need-name">Find something to listen to</span>
-          <span class="need-note">Breathing sessions, soundscapes and recordings</span>
+        <li><a href="#library" class="card">
+          <span class="pebble" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 14v-2a7 7 0 0 1 14 0v2M5 14h2.5v5H5zM16.5 14H19v5h-2.5z"/></svg></span>
+          <span class="card-name">Find something to listen to</span>
+          <span class="card-note">Breathing sessions, soundscapes and recordings</span>
         </a></li>
       </ul>
-      <p class="home-foot">Everything here stays on this device. Nothing to sign up for.</p>
+      <p class="home-foot">Everything here stays on your phone. Nothing to sign up for.</p>
     </section>
 
     <!-- BREATHE -->
@@ -230,11 +242,31 @@
       </fieldset>
 
       <fieldset>
+        <legend>Lettering</legend>
+        <div class="choice-row" data-setting="font">
+          <button data-value="rounded" class="font-rounded">Soft and round</button>
+          <button data-value="clear" class="font-clear">Extra clear</button>
+          <button data-value="lexend" class="font-lexend">Lexend</button>
+        </div>
+        <p class="hint">Extra clear makes letters like I, l and 1 easy to tell apart. Lexend was made to make reading easier.</p>
+      </fieldset>
+
+      <fieldset>
         <legend>Text size</legend>
         <div class="choice-row" data-setting="textSize">
           <button data-value="normal">Normal</button>
           <button data-value="large">Large</button>
+          <button data-value="larger">Larger</button>
         </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Spacing</legend>
+        <div class="choice-row" data-setting="spacing">
+          <button data-value="normal">Normal</button>
+          <button data-value="roomy">More space</button>
+        </div>
+        <p class="hint">More room between lines, words and letters.</p>
       </fieldset>
 
       <fieldset>
@@ -255,11 +287,11 @@
   </main>
 
   <nav class="tabs" aria-label="Main">
-    <a href="#home" data-tab="home">Home</a>
-    <a href="#breathe" data-tab="breathe">Breathe</a>
-    <a href="#sounds" data-tab="sounds">Sounds</a>
-    <a href="#loops" data-tab="loops">Loops</a>
-    <a href="#library" data-tab="library">Library</a>
+    <a href="#home" data-tab="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+    <a href="#breathe" data-tab="breathe"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg><span>Breathe</span></a>
+    <a href="#sounds" data-tab="sounds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h1.5M8 8v8M12 5v14M16 8v8M19.5 12H20"/></svg><span>Sounds</span></a>
+    <a href="#loops" data-tab="loops"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c-2.5-3-7-3-7 0s4.5 3 7 0 7-3 7 0-4.5 3-7 0z"/></svg><span>Loops</span></a>
+    <a href="#library" data-tab="library"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 14v-2a7 7 0 0 1 14 0v2M5 14h2.5v5H5zM16.5 14H19v5h-2.5z"/></svg><span>Library</span></a>
   </nav>
 
   <script type="module" src="js/app.js"></script>

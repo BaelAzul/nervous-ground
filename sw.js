@@ -1,6 +1,6 @@
 // Keeps Ebbly working offline once it has been opened.
 // Bump VERSION whenever app files change so phones pick up the new version.
-const VERSION = "ebbly-1";
+const VERSION = "ebbly-2";
 const SHELL = [
   "./", "index.html", "css/app.css",
   "js/app.js", "js/store.js", "js/sound.js", "js/breath.js", "js/rings.js", "js/loops.js",

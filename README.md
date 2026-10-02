@@ -41,6 +41,8 @@ in the player, and the background dips automatically while you're speaking.
 ## Thought loops and hard moments
 
 All the wording for the Loops section lives in `loops.json`, so it can be changed without touching code.
+
+Each moment also has its own circles, set by `"rings"`: `ripple`, `outward`, `tide`, `loosen`, `warm`, `open`, `still` or `fade`. Change the word to change how that moment's circles move.
 Each moment has `recognise` (signs + naming line), `drills` (the interrupt options) and `complete`
 (the real-world finishing actions). Drill types: `lines`, `notice`, `worryTree`, `listen`, `brainDump`,
 `link`, `changeWords`. The `help` block holds the crisis contacts and practice details shown on Get help now.

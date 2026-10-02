@@ -37,9 +37,12 @@ function applySettings() {
   const root = document.documentElement;
   root.dataset.theme = store.get("theme");
   root.dataset.text = store.get("textSize");
+  root.dataset.font = store.get("font");
+  root.dataset.spacing = store.get("spacing");
   const meta = $('meta[name="theme-color"]');
   if (meta) meta.content = getComputedStyle(root).getPropertyValue("--ground").trim();
   breathRings.redraw();
+  homeRings.redraw();
 }
 
 $$("[data-setting]").forEach((el) => {
@@ -477,6 +480,25 @@ function leaveCalm() {
   clearTimeout(calmFadeTimer);
 }
 
+/* ---------------- home ---------------- */
+// A small set of circles that swells very slowly, about five breaths a minute.
+const homeRings = createRings($("#home-canvas"), {
+  getSize: (t) => 0.6 + 0.32 * Math.sin((t * Math.PI * 2) / 12),
+  isMinimal: () => store.minimalMotion(),
+  rings: 6,
+});
+function startHomeRings() {
+  if (store.minimalMotion()) { homeRings.stop(); requestAnimationFrame(() => homeRings.redraw()); }
+  else homeRings.start();
+}
+function greet() {
+  const h = new Date().getHours();
+  $("#home-title").textContent =
+    h >= 5 && h < 12 ? "Good morning." :
+    h >= 12 && h < 17 ? "Good afternoon." :
+    h >= 17 && h < 22 ? "Good evening." : "Still awake? That's okay.";
+}
+
 /* ---------------- worry time ---------------- */
 function showWorryBanner() {
   $("#worry-banner").hidden = !loops.worryTimeDue();
@@ -516,11 +538,12 @@ function route() {
     }
   }
   if (view === "sounds") syncMixer();
-  if (currentView === "loop" && view !== "loop") loops.leaveLoops();
+  if ((currentView === "loop" || currentView === "loops") && view !== currentView) loops.leaveLoops();
+  if (currentView === "home" && view !== "home") homeRings.stop();
   if (view === "loops") loops.renderLoopList($("#loops-view"));
   if (view === "loop") loops.renderLoop($("#loop-view"), params);
   if (view === "help") loops.renderHelp($("#help-view"));
-  if (view === "home") showWorryBanner();
+  if (view === "home") { showWorryBanner(); greet(); startHomeRings(); }
   if (view === "calm") enterCalm(params);
 
   if (view !== currentView) {

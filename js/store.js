@@ -5,6 +5,8 @@ const defaults = {
   theme: "dusk",
   motion: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "minimal" : "gentle",
   textSize: "normal",
+  font: "rounded",   // rounded (Nunito), clear (Atkinson Hyperlegible) or lexend
+  spacing: "normal", // normal or roomy
   tones: false,
   vibrate: false,
   showCount: true,

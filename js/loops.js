@@ -32,18 +32,48 @@ export async function loadLoops() {
   return data;
 }
 
+/* ---------- circles ---------- */
+// Each moment has its own circles ("rings" in loops.json). These are stopped when you leave.
+let circles = [];
+function clearCircles() { circles.forEach((c) => c.destroy()); circles = []; }
+
+// A small, still picture of a moment's circles, for the list.
+function miniRings(mode) {
+  const c = el("canvas", { class: "mini-rings", "aria-hidden": "true" });
+  circles.push(createRings(c, { getSize: () => 0.85, isMinimal: () => true, rings: 4, mode }));
+  return c;
+}
+
+// The moving circles at the top of each step.
+function heroRings(mode) {
+  const c = el("canvas", { "aria-hidden": "true" });
+  const wrap = el("div", { class: "loop-hero" }, c);
+  const still = mode === "still";
+  const r = createRings(c, {
+    // A slow, unhurried swell, about five breaths a minute. Shutdown stays still.
+    getSize: (t) => (still ? 0.6 : 0.62 + 0.3 * Math.sin((t * Math.PI * 2) / 12)),
+    isMinimal: () => store.minimalMotion(),
+    rings: 6, mode,
+  });
+  circles.push(r);
+  if (store.minimalMotion()) requestAnimationFrame(() => r.redraw()); else r.start();
+  return wrap;
+}
+
 /* ---------- list of moments ---------- */
 export async function renderLoopList(root) {
   const d = await loadLoops();
+  clearCircles();
   root.innerHTML = "";
   if (!d) { root.append(el("p", { class: "empty", text: "This part couldn't load. Check your connection and open it again." })); return; }
   root.append(
     el("h1", { text: d.title }),
     el("p", { class: "lead", text: d.intro }),
-    el("ul", { class: "needs moments" },
-      d.moments.map((m) => el("li", {}, el("a", { class: "need", href: `#loop?id=${m.id}&step=1` },
-        el("span", { class: "need-name", text: m.title }))))),
-    el("p", {}, el("a", { class: "text-link", href: "#help", text: "Get help now" })),
+    el("ul", { class: "cards moments" },
+      d.moments.map((m) => el("li", {}, el("a", { class: "card", href: `#loop?id=${m.id}&step=1` },
+        miniRings(m.rings),
+        el("span", { class: "card-name", text: m.title }))))),
+    el("p", { class: "help-line" }, el("a", { class: "help-btn", href: "#help", text: "Get help now" })),
   );
 }
 
@@ -53,6 +83,7 @@ function runCleanup() { cleanup.forEach((fn) => fn()); cleanup = []; }
 
 export async function renderLoop(root, params) {
   runCleanup();
+  clearCircles();
   const d = await loadLoops();
   const m = d?.moments.find((x) => x.id === params.get("id"));
   root.innerHTML = "";
@@ -63,11 +94,12 @@ export async function renderLoop(root, params) {
   const top = el("div", { class: "loop-top" },
     el("a", { class: "text-link back", href: "#loops", text: "All moments" }),
     el("a", { class: "help-btn", href: "#help", text: "Get help now" }));
-  const steps = ["Notice it", "Interrupt it", "Finish it"];
-  const progress = el("ol", { class: "loop-steps", "aria-label": "Steps" },
-    steps.map((s, i) => el("li", { class: i + 1 === step ? "on" : i + 1 < step ? "done" : "", "aria-current": i + 1 === step ? "step" : false, text: s })));
+  const steps = ["notice it", "interrupt it", "finish it"];
+  const progress = el("p", { class: "loop-progress" },
+    el("span", { class: "dots", "aria-hidden": "true" }, steps.map((s, i) => el("i", { class: i + 1 === step ? "on" : i + 1 < step ? "done" : "" }))),
+    el("span", { text: `Step ${step} of 3: ${steps[step - 1] || ""}` }));
   const body = el("div", { class: "loop-body" });
-  root.append(top, el("h1", { class: "loop-title", text: m.title }), progress, body);
+  root.append(top, heroRings(m.rings), el("h1", { class: "loop-title", text: m.title }), progress, body);
 
   const go = (n) => { location.hash = `#loop?id=${m.id}&step=${n}`; };
 
@@ -93,7 +125,7 @@ export async function renderLoop(root, params) {
       runCleanup();
       area.innerHTML = "";
       if (m.drills.length > 1) { menu.hidden = true; again.hidden = false; area.prepend(el("p", { class: "drill-name", text: drill.name })); }
-      runDrill(drill, area, { m, onDone: showThen, goFinish: () => go(3) });
+      runDrill(drill, area, { m, onDone: showThen, goFinish: () => go(3), root });
       area.scrollIntoView({ block: "start", behavior: store.minimalMotion() ? "auto" : "smooth" });
     };
     if (m.drills.length === 1 && !m.lowDemand) {
@@ -223,7 +255,7 @@ function drillLines(drill, area, done) {
   show();
 }
 
-function drillNotice(drill, area, done) {
+function drillNotice(drill, area, done, ctx = {}) {
   const box = typingBox(drill.prompt);
   const go = btn("Let it go", start, "primary");
   const stage = el("div", { class: "notice-stage", hidden: true },
@@ -232,7 +264,8 @@ function drillNotice(drill, area, done) {
   const cue = el("p", { class: "cue small", "aria-live": "polite" });
   area.append(el("p", { class: "hint", text: drill.prompt }), box, el("div", { class: "row" }, go), stage, cue);
   let size = 0.5;
-  const rings = createRings($("canvas", stage), { getSize: () => size, isMinimal: () => store.minimalMotion() });
+  const rings = createRings($("canvas", stage), { getSize: () => size, isMinimal: () => store.minimalMotion(), mode: ctx.m?.rings });
+  const hero = ctx.root && $(".loop-hero", ctx.root);
 
   function start() {
     const text = box.value.trim();
@@ -240,9 +273,11 @@ function drillNotice(drill, area, done) {
     box.hidden = true; go.parentElement.hidden = true;
     area.querySelectorAll(".hint").forEach((h) => { h.hidden = true; });
     stage.hidden = false;
+    if (hero) hero.hidden = true; // one set of circles at a time
     stage.scrollIntoView({ block: "center", behavior: store.minimalMotion() ? "auto" : "smooth" });
     const t = $(".notice-text", stage);
-    t.textContent = text ? `I'm noticing the thought that ${text.charAt(0).toLowerCase()}${text.slice(1)}` : "I'm noticing the thought.";
+    const lower = /^I\b/.test(text) ? text : text.charAt(0).toLowerCase() + text.slice(1); // keep "I" as a capital
+    t.textContent = text ? `I'm noticing the thought that ${lower}` : "I'm noticing the thought.";
     t.style.opacity = "1"; t.style.transform = "scale(1)";
     rings.start();
     const IN = 4000, OUT = 6000, BREATHS = 3;
@@ -260,8 +295,9 @@ function drillNotice(drill, area, done) {
         cue.textContent = "Gone. You can do another, or move on.";
         rings.stop();
         stage.hidden = true;
+        if (hero) hero.hidden = false;
         area.append(el("div", { class: "row" },
-          btn("Another thought", () => { area.innerHTML = ""; drillNotice(drill, area, done); }),
+          btn("Another thought", () => { area.innerHTML = ""; drillNotice(drill, area, done, ctx); }),
           btn("Continue", done, "primary")));
         return;
       }
@@ -277,7 +313,7 @@ function drillNotice(drill, area, done) {
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
-    cleanup.push(() => { cancelAnimationFrame(raf); rings.stop(); });
+    cleanup.push(() => { cancelAnimationFrame(raf); rings.destroy(); if (hero) hero.hidden = false; });
   }
 }
 
@@ -412,4 +448,4 @@ export async function renderHelp(root) {
   );
 }
 
-export function leaveLoops() { runCleanup(); }
+export function leaveLoops() { runCleanup(); clearCircles(); }
