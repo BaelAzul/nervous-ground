@@ -3,6 +3,7 @@ import * as sound from "./sound.js";
 import { PATTERNS, MINUTES, createSession, practicePattern } from "./breath.js";
 import { createRings } from "./rings.js";
 import * as haptic from "./haptic.js";
+import { loadCaptions, createCaptionView } from "./captions.js";
 import * as loops from "./loops.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -125,6 +126,8 @@ function summaryText(from, to) {
 }
 
 const breathRings = createRings($("#breath-canvas"), {
+  interactive: true,
+  getAudio: () => sound.analysis(),
   getSize: () => session.size,
   getHold: () => session.hold,
   isMinimal: () => store.minimalMotion(),
@@ -381,9 +384,14 @@ function syncSoundTimer() {
 }
 
 const playingBtn = $("#playing");
-playingBtn.addEventListener("click", () => sound.stopAll());
+// The pill at the top shows whenever anything is playing, and stops it all.
+playingBtn.addEventListener("click", () => {
+  if (current) $("#player-stop").click();
+  sound.stopAll();
+});
+function updatePlaying() { playingBtn.hidden = !(sound.anyOn() || (current && !audio.paused)); }
 sound.onChange(() => {
-  playingBtn.hidden = !sound.anyOn();
+  updatePlaying();
   syncMixer();
   syncSoundTimer();
 });
@@ -505,8 +513,15 @@ function playRecording(it) {
   audio.play().then(() => fadeAudio(1)).catch(() => {
     $("#player-time").textContent = "This recording couldn't play. Check the file is in the audio folder.";
   });
-  $("#player").hidden = false;
   $("#player-title").textContent = it.title;
+  captionView.set([]);
+  $("#captions-row").hidden = true;
+  loadCaptions(it.captions).then((cues) => {
+    if (current !== it) return;
+    captionView.set(cues);
+    $("#captions-row").hidden = !cues.length;
+  });
+  if (location.hash !== "#listen") location.hash = "#listen";
   $("#player-toggle").textContent = "Pause";
   if ("mediaSession" in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({ title: it.title, artist: "Ebbly" });
@@ -522,7 +537,7 @@ function fadeAudio(to, then) {
   requestAnimationFrame(step);
 }
 $("#player-toggle").addEventListener("click", () => {
-  if (audio.paused) { audio.play(); fadeAudio(1); $("#player-toggle").textContent = "Pause"; }
+  if (audio.paused) { if (audio.ended) audio.currentTime = 0; audio.play(); fadeAudio(1); sound.startDucking(); $("#player-toggle").textContent = "Pause"; }
   else { fadeAudio(0, () => audio.pause()); $("#player-toggle").textContent = "Play"; }
 });
 $("#player-back").addEventListener("click", () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
@@ -530,9 +545,45 @@ $("#player-stop").addEventListener("click", () => {
   fadeAudio(0, () => { audio.pause(); audio.removeAttribute("src"); audio.load(); });
   sound.stopDucking();
   if (store.get("background") !== "none") sound.stopAll();
-  $("#player").hidden = true;
   current = null;
+  captionView.clear();
+  location.hash = "#library";
 });
+
+["play", "pause", "ended", "emptied"].forEach((ev) => audio.addEventListener(ev, updatePlaying));
+
+// The listening screen: circles that move with the voice, and the words if wanted.
+const captionView = createCaptionView($("#caption"));
+const listenRings = createRings($("#listen-canvas"), {
+  rings: 7,
+  getSize: (t) => 0.55 + 0.12 * Math.sin((t * Math.PI * 2) / 12),
+  isMinimal: () => store.minimalMotion(),
+  getAudio: () => sound.analysis(),
+  interactive: true,
+  motes: 16,
+});
+const captionsToggle = $("#captions-toggle");
+captionsToggle.checked = !!store.get("captions");
+captionsToggle.addEventListener("change", () => {
+  store.set("captions", captionsToggle.checked);
+  $("#caption").hidden = !captionsToggle.checked;
+});
+let listenRaf = 0;
+function listenLoop() {
+  if (store.get("captions")) captionView.update(audio.currentTime);
+  listenRaf = requestAnimationFrame(listenLoop);
+}
+function enterListen() {
+  if (!current) { location.replace("#library"); return; }
+  $("#caption").hidden = !store.get("captions");
+  listenRings.start();
+  cancelAnimationFrame(listenRaf);
+  listenLoop();
+}
+function leaveListen() {
+  listenRings.stop();
+  cancelAnimationFrame(listenRaf);
+}
 audio.addEventListener("timeupdate", () => {
   if (!audio.duration) return;
   $("#player-progress").style.width = `${(audio.currentTime / audio.duration) * 100}%`;
@@ -554,6 +605,9 @@ let calmClock = 0;
 
 const calmRings = createRings($("#calm-canvas"), {
   rings: 9,
+  interactive: true,
+  getAudio: () => sound.analysis(),
+  motes: 24,
   getSize: (t) => (calmStill ? 0.6 : 0.6 + 0.22 * Math.sin((t * Math.PI * 2) / 10)),
   isMinimal: () => calmStill || store.minimalMotion(),
 });
@@ -606,6 +660,9 @@ function leaveCalm() {
 /* ---------------- home ---------------- */
 // A small set of circles that swells very slowly, about five breaths a minute.
 const homeRings = createRings($("#home-canvas"), {
+  interactive: true,
+  getAudio: () => sound.analysis(),
+  motes: 8,
   getSize: (t) => 0.6 + 0.32 * Math.sin((t * Math.PI * 2) / 12),
   isMinimal: () => store.minimalMotion(),
   rings: 6,
@@ -630,8 +687,8 @@ $("#worry-dismiss").addEventListener("click", () => { loops.clearWorryTime(); sh
 $("#worry-go").addEventListener("click", () => { loops.clearWorryTime(); });
 
 /* ---------------- router ---------------- */
-const VIEWS = ["home", "breathe", "sounds", "library", "calm", "settings", "loops", "loop", "help"];
-const TAB_FOR = { loop: "loops", help: "loops" };
+const VIEWS = ["home", "breathe", "sounds", "library", "calm", "settings", "loops", "loop", "help", "listen"];
+const TAB_FOR = { loop: "loops", help: "loops", listen: "library" };
 let currentView = null;
 
 function route() {
@@ -675,6 +732,8 @@ function route() {
   if (view === "help") loops.renderHelp($("#help-view"));
   if (view === "home") { showWorryBanner(); greet(); startHomeRings(); }
   if (view === "calm") enterCalm(params);
+  if (view === "listen") enterListen();
+  if (currentView === "listen" && view !== "listen") leaveListen();
 
   if (view !== currentView) {
     window.scrollTo(0, 0);

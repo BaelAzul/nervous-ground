@@ -7,7 +7,7 @@ media:
     input: audio
     output: /audio
     rename: safe
-    extensions: [mp3, m4a, aac, wav, ogg]
+    extensions: [mp3, m4a, aac, wav, ogg, vtt]
 
 content:
   - name: library
@@ -77,6 +77,13 @@ content:
             type: file
             options:
               media: audio
+          - name: captions
+            label: Words file (meditations only, optional)
+            description: A .vtt file so the words can appear as they're spoken. Send Claude the recording and your script and it will make this for you.
+            type: file
+            options:
+              media: audio
+              extensions: [vtt]
           - name: background
             label: Sound underneath (meditations only, optional)
             type: select

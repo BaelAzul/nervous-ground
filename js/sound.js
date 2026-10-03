@@ -488,6 +488,30 @@ export function cue(kind) {
   o.start(t); o2.start(t); o.stop(t + 1.7); o2.stop(t + 1.7);
 }
 
+// What's sounding right now, for the circles to respond to.
+// level: overall 0..1, low/high: how much bass and treble, voice: the meditation voice 0..1.
+let bands = null;
+export function analysis() {
+  if (!ctx) return null;
+  if (!bands) {
+    bands = ctx.createAnalyser(); bands.fftSize = 512; bands.smoothingTimeConstant = 0.85;
+    master.connect(bands);
+    bands.freq = new Uint8Array(bands.frequencyBinCount);
+  }
+  bands.getByteFrequencyData(bands.freq);
+  const f = bands.freq, n = f.length;
+  const avg = (a, b) => { let s = 0; for (let i = a; i < b; i++) s += f[i]; return s / (b - a) / 255; };
+  const low = avg(1, Math.floor(n * 0.04)), mid = avg(Math.floor(n * 0.04), Math.floor(n * 0.2)), high = avg(Math.floor(n * 0.2), Math.floor(n * 0.6));
+  let voiceLevel = 0;
+  if (voice) {
+    voice.analyser.getFloatTimeDomainData(voice.data);
+    let sum = 0;
+    for (const v of voice.data) sum += v * v;
+    voiceLevel = Math.min(1, Math.sqrt(sum / voice.data.length) * 6);
+  }
+  return { level: Math.min(1, (low + mid + high) / 1.2), low, high, voice: voiceLevel };
+}
+
 // How loud the sounds are right now (0..1). Used for checking levels when testing.
 let meterNode = null;
 export function level() {

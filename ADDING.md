@@ -86,3 +86,11 @@ Tips for recording loops:
 - 1 to 5 minutes of steady sound works best (waves, a stream, rain on a roof, wind in trees).
 - Avoid voices, dogs, cars and sudden bangs. One loud moment gets heard every time round.
 - Hold the phone still, and cover the microphone with a sock or foam if it's windy.
+
+## Words that appear as a meditation is spoken
+
+A meditation can show its words on screen as they're spoken (people can switch this off).
+Send Claude the recording and the script, one phrase per line, and it will make a small
+captions file (.vtt) using `tools/make_captions.py`. Upload that file in the editor under
+**Words file** for that meditation. Pausing briefly between phrases when you record makes
+the timing very accurate.

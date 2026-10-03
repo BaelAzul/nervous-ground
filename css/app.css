@@ -348,6 +348,25 @@ input[type="range"] { flex: 1; accent-color: var(--breath); height: 32px; }
 .player-buttons .primary, .player-buttons .secondary { min-height: 44px; padding: 0 1.1rem; font-size: var(--step-0); }
 .player-buttons .secondary { background: var(--surface); }
 
+/* ---------- listening ---------- */
+.listen-title { text-align: center; font-size: var(--step-3); margin: .25rem 0 0; }
+.listen-stage { width: min(100%, 19rem); }
+.caption {
+  min-height: 4.6em; max-width: 22em; margin: -.5rem auto .75rem; text-align: center;
+  font-size: var(--step-2); line-height: 1.45; transition: opacity 1s ease;
+}
+.caption[hidden] { display: block; visibility: hidden; }
+.caption.leaving { opacity: 0; }
+.cw { opacity: 0; transition: opacity .6s ease; }
+.cw.on { opacity: 1; }
+.listen .player-bar { margin: 0 auto .4rem; max-width: 22rem; }
+.listen .player-time { text-align: center; margin: 0 auto .9rem; }
+.listen .player-buttons { justify-content: center; margin-bottom: 1.5rem; }
+.listen-options { display: grid; gap: 1rem; padding: 1rem 1.1rem; border-radius: var(--radius-card); background: var(--surface); }
+.listen-options .switch[hidden] { display: none; }
+.player-bg .choice-row button { min-height: 38px; padding: .2rem .8rem; background: var(--surface-2); }
+.player-bg .choice-row button[aria-pressed="true"] { background: var(--breath); }
+
 /* ---------- calm space ---------- */
 body.in-calm { padding-bottom: 0; }
 body.in-calm .top, body.in-calm .tabs { display: none; }

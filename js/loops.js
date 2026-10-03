@@ -54,6 +54,8 @@ function heroRings(mode) {
     getSize: (t) => (still ? 0.6 : 0.62 + 0.3 * Math.sin((t * Math.PI * 2) / 12)),
     isMinimal: () => store.minimalMotion(),
     rings: 6, mode,
+    interactive: true,
+    getAudio: () => sound.analysis(),
   });
   circles.push(r);
   if (store.minimalMotion()) requestAnimationFrame(() => r.redraw()); else r.start();

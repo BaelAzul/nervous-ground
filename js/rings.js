@@ -11,12 +11,20 @@
 //   still    fewer rings, dim and completely still
 //   fade     slowly dims, for night time
 // With "Minimal" movement in Settings, every mode is drawn still.
+//
+// Responsive extras (all optional, all off with Minimal movement):
+//   interactive  touch or drag to send ripples out from your finger; the rings lean towards you
+//   getAudio     a function returning { level, low, high, voice } so the rings move with the sound
+//   motes        a number of tiny specks drifting slowly through the light
 
 export const MODES = ["ripple", "outward", "tide", "loosen", "warm", "open", "still", "fade"];
 
 // Options: shape "circle" or "box" (soft rounded squares, for box breathing);
 // getHold() can return 0..1 while a breath is held, to draw a slow arc so the hold has a visible end.
-export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "ripple", shape = "circle", getHold = null }) {
+export function createRings(canvas, {
+  getSize, isMinimal, rings = 7, mode = "ripple", shape = "circle", getHold = null,
+  interactive = false, getAudio = null, motes = 0,
+}) {
   const ctx2d = canvas.getContext("2d");
   let raf = 0;
   let running = false;
@@ -30,6 +38,43 @@ export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "rip
     return { breath: v("--breath", "#9CC3B5"), sand: v("--sand", "#D6B98F"), lichen: v("--lichen", "#AEB4A9") };
   }
   let palette = colors();
+
+  // Touch: ripples from the finger, a little extra energy, and a gentle lean towards it.
+  const ripples = [];
+  let energy = 0;
+  let finger = null;              // where a finger is resting, if anywhere
+  const pull = { x: 0, y: 0 };
+  let lastDrag = 0;
+  if (interactive) {
+    canvas.style.touchAction = canvas.closest(".calm, .listen") ? "none" : "pan-y";
+    const at = (e) => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    canvas.addEventListener("pointerdown", (e) => {
+      if (isMinimal() || !running) return;
+      const p = at(e);
+      ripples.push({ ...p, t: performance.now(), s: 1 });
+      energy = Math.min(1.4, energy + 0.5);
+      finger = p;
+    });
+    canvas.addEventListener("pointermove", (e) => {
+      if (!finger || isMinimal()) return;
+      finger = at(e);
+      const now = performance.now();
+      if (now - lastDrag > 140) { ripples.push({ ...finger, t: now, s: 0.55 }); lastDrag = now; energy = Math.min(1.4, energy + 0.08); }
+    });
+    const up = () => { finger = null; };
+    canvas.addEventListener("pointerup", up);
+    canvas.addEventListener("pointercancel", up);
+    canvas.addEventListener("pointerleave", up);
+  }
+
+  // Sound: smoothed so the rings breathe with it rather than flicker.
+  const aud = { level: 0, low: 0, high: 0, voice: 0 };
+
+  // Specks of light drifting slowly outwards.
+  const specks = Array.from({ length: motes }, () => newSpeck(true));
+  function newSpeck(anywhere) {
+    return { a: Math.random() * Math.PI * 2, r: anywhere ? Math.random() : Math.random() * 0.15, v: 0.004 + Math.random() * 0.01, spin: (Math.random() - 0.5) * 0.02, size: 0.6 + Math.random() * 1.2, tw: Math.random() * 6 };
+  }
 
   function resize() {
     const r = canvas.getBoundingClientRect();
@@ -58,7 +103,20 @@ export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "rip
     ctx2d.clearRect(0, 0, w, h);
     const cx = w / 2, cy = h / 2;
     const maxR = Math.min(w, h) * 0.47;
-    const outer = maxR * (0.42 + 0.58 * size);
+
+    // follow the sound, gently
+    const a = !minimal && getAudio ? getAudio() : null;
+    for (const key of ["level", "low", "high", "voice"]) {
+      const target = a ? a[key] || 0 : 0;
+      aud[key] += (target - aud[key]) * (key === "voice" ? 0.12 : 0.05);
+    }
+    energy *= 0.985;
+    // lean towards a resting finger
+    const tx = finger ? (finger.x - cx) * 0.08 : 0, ty = finger ? (finger.y - cy) * 0.08 : 0;
+    pull.x += (tx - pull.x) * 0.06; pull.y += (ty - pull.y) * 0.06;
+    const stir = 1 + aud.high * 2.5 + aud.voice * 1.4 + energy * 1.5;
+
+    const outer = maxR * (0.42 + 0.58 * size) * (1 + aud.low * 0.08 + aud.voice * 0.07);
 
     // How strong everything is drawn.
     let strength = 1;
@@ -69,7 +127,7 @@ export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "rip
     // Soft glow behind the rings.
     const glowR = outer * (mode === "warm" ? 1.25 : 1.05);
     const glow = ctx2d.createRadialGradient(cx, cy, 0, cx, cy, glowR);
-    const glowA = (mode === "warm" ? 0.2 + 0.12 * size : 0.10 + 0.12 * size) * strength;
+    const glowA = ((mode === "warm" ? 0.2 + 0.12 * size : 0.10 + 0.12 * size) + aud.level * 0.12 + aud.voice * 0.18 + energy * 0.06) * strength;
     glow.addColorStop(0, rgba(glowC, glowA));
     glow.addColorStop(1, rgba(glowC, 0));
     ctx2d.fillStyle = glow;
@@ -93,10 +151,10 @@ export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "rip
       ctx2d.lineWidth = 1.4 + (1 - k) * 1.2;
 
       // Where this ring sits (tide moves each ring a little after the one inside it).
-      let ox = 0, oy = 0, sx = 1, sy = 1;
+      let ox = pull.x * (1 - k * 0.6), oy = pull.y * (1 - k * 0.6), sx = 1, sy = 1;
       if (mode === "tide") {
-        oy = Math.sin(t * 0.42 - i * 0.38) * maxR * 0.035;
-        ox = Math.sin(t * 0.21 - i * 0.3) * maxR * 0.02;
+        oy += Math.sin(t * 0.42 - i * 0.38) * maxR * 0.035;
+        ox += Math.sin(t * 0.21 - i * 0.3) * maxR * 0.02;
         sx = 1.04; sy = 0.96;
       }
 
@@ -116,7 +174,7 @@ export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "rip
         let wobble = 0;
         if (!minimal && mode !== "still") {
           const calm = mode === "fade" ? 0.5 : 1;
-          wobble = base * k * k * calm * (
+          wobble = base * k * k * calm * stir * (
             Math.sin(a * 3 + t * 0.25 + i * 0.9) * 0.012 +
             Math.sin(a * 2 - t * 0.17 + i) * 0.008);
           if (mode === "tide") wobble += base * Math.sin(a + t * 0.3 + i * 0.5) * 0.01;
@@ -134,6 +192,35 @@ export function createRings(canvas, { getSize, isMinimal, rings = 7, mode = "rip
       if (mode !== "open") ctx2d.closePath();
       ctx2d.stroke();
     }
+    // Ripples from a finger.
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const rp = ripples[i];
+      const age = (now - rp.t) / 1000, life = 4.5;
+      if (age > life || minimal) { ripples.splice(i, 1); continue; }
+      const p = age / life;
+      [0, 0.12].forEach((lag, j) => {
+        const q = p - lag;
+        if (q <= 0) return;
+        ctx2d.strokeStyle = rgba(ring, (1 - q) * (1 - q) * 0.5 * rp.s * (j ? 0.5 : 1) * strength);
+        ctx2d.lineWidth = 1.6 - j * 0.6;
+        ctx2d.beginPath(); ctx2d.arc(rp.x, rp.y, (1 - Math.pow(1 - q, 2.2)) * maxR * 0.85 * rp.s + 2, 0, Math.PI * 2); ctx2d.stroke();
+      });
+    }
+
+    // Specks of light.
+    if (specks.length && !minimal) {
+      const sc = hexToRgb(palette.sand);
+      specks.forEach((sp, i) => {
+        sp.r += sp.v * 0.016 * (1 + aud.level * 2 + energy);
+        sp.a += sp.spin * 0.016;
+        if (sp.r > 1.05) specks[i] = newSpeck(false);
+        const rr = sp.r * maxR * 1.1;
+        const tw = 0.5 + 0.5 * Math.sin(t * 0.8 + sp.tw);
+        ctx2d.fillStyle = rgba(sc, (0.08 + 0.22 * tw) * Math.sin(Math.PI * Math.min(1, sp.r)) * strength);
+        ctx2d.beginPath(); ctx2d.arc(cx + Math.cos(sp.a) * rr, cy + Math.sin(sp.a) * rr, sp.size, 0, Math.PI * 2); ctx2d.fill();
+      });
+    }
+
     // A slow arc while holding, so you can see when the hold will end.
     const hold = getHold ? getHold() : null;
     if (hold != null && hold >= 0) {

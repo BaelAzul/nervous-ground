@@ -7,6 +7,7 @@ const defaults = {
   textSize: "normal",
   font: "rounded",   // rounded (Nunito), clear (Atkinson Hyperlegible) or lexend
   spacing: "normal", // normal or roomy
+  captions: true,    // show a meditation's words as they're spoken, when it has them
   tones: false,
   vibrate: false,
   showCount: true,

@@ -184,20 +184,30 @@
       <ul class="library" id="library-list"></ul>
       <p class="empty" id="library-empty" hidden>Nothing here for that yet.</p>
 
-      <div class="player" id="player" hidden>
-        <div class="player-info">
-          <p class="player-title" id="player-title"></p>
-          <p class="player-time" id="player-time"></p>
-        </div>
-        <div class="player-bar"><div id="player-progress"></div></div>
+    </section>
+
+    <!-- LISTENING (meditations and recordings) -->
+    <section class="view listen" data-view="listen" aria-labelledby="player-title" hidden>
+      <div class="loop-top">
+        <a class="text-link back" href="#library">Library</a>
+      </div>
+      <h1 class="listen-title" id="player-title"></h1>
+      <div class="stage listen-stage">
+        <canvas id="listen-canvas" aria-hidden="true"></canvas>
+      </div>
+      <p class="caption" id="caption"></p>
+      <div class="player-bar"><div id="player-progress"></div></div>
+      <p class="player-time" id="player-time"></p>
+      <div class="player-buttons">
+        <button class="secondary" id="player-back" aria-label="Back 15 seconds">−15s</button>
+        <button class="primary" id="player-toggle">Pause</button>
+        <button class="secondary" id="player-stop">Stop</button>
+      </div>
+      <div class="listen-options">
+        <label class="switch" id="captions-row" hidden><input type="checkbox" id="captions-toggle"> <span>Show the words as they're spoken</span></label>
         <div class="player-bg">
           <p class="player-bg-label" id="bg-label">Sound underneath</p>
           <div class="choice-row" id="bg-choices" role="group" aria-labelledby="bg-label"></div>
-        </div>
-        <div class="player-buttons">
-          <button class="secondary" id="player-back" aria-label="Back 15 seconds">−15s</button>
-          <button class="primary" id="player-toggle">Pause</button>
-          <button class="secondary" id="player-stop">Stop</button>
         </div>
       </div>
     </section>
