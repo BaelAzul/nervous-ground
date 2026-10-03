@@ -751,6 +751,23 @@ libraryReady = loadLibrary();
 libraryReady.then(loadRecordedSounds); // after the library, so "New" knows how many days count
 route();
 
+// Updates arrive by themselves: the app checks for a new version whenever it's opened,
+// and switches over quietly at a moment when nothing is playing and nobody is mid-exercise.
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
+  const hadVersion = !!navigator.serviceWorker.controller;
+  let updateReady = false;
+  const idle = () => !sound.anyOn() && (!current || audio.paused) && !session.running &&
+    !["calm", "listen", "loop", "breathe"].includes(currentView);
+  const applyUpdate = () => { if (updateReady && idle()) location.reload(); };
+  navigator.serviceWorker.register("sw.js").then((reg) => {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") { reg.update().catch(() => {}); applyUpdate(); }
+    });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadVersion) return; // first visit: nothing old to replace
+    updateReady = true;
+    applyUpdate();
+  });
+  window.addEventListener("hashchange", applyUpdate);
 }
