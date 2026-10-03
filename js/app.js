@@ -303,38 +303,72 @@ $("#history-clear").addEventListener("click", () => { store.set("practiceLog", [
 const mixer = $("#mixer");
 function renderMixer() {
   mixer.innerHTML = "";
-  sound.LAYERS.forEach(({ id, name, note }) => {
-    const level = store.get("levels")[id] ?? 0.5;
-    const li = document.createElement("li");
-    li.className = "mix-row";
-    li.innerHTML = `
-      <p class="mix-name" id="mix-${id}">${name}</p>
-      <p class="mix-note">${note}</p>
-      <button class="mix-toggle" type="button" aria-describedby="mix-${id}" aria-pressed="${sound.isOn(id)}">${sound.isOn(id) ? "On" : "Off"}</button>
-      <label class="mix-volume" ${sound.isOn(id) ? "" : "hidden"}>
-        <span>Volume</span>
-        <input type="range" min="0.05" max="1" step="0.01" value="${level}" aria-label="${name} volume">
-      </label>`;
-    $(".mix-toggle", li).addEventListener("click", () => {
-      sound.isOn(id) ? sound.turnOff(id) : sound.turnOn(id, store.get("levels")[id] ?? 0.5);
-    });
-    $("input", li).addEventListener("input", (e) => {
-      const v = Number(e.target.value);
-      sound.setLevel(id, v);
-      store.set("levels", { ...store.get("levels"), [id]: v });
-    });
-    mixer.append(li);
+  sound.FAMILIES.forEach((fam) => {
+    const layers = sound.LAYERS.filter((l) => l.family === fam.id);
+    if (!layers.length) return;
+    const head = document.createElement("li");
+    head.className = "mix-family";
+    head.innerHTML = `<h2></h2><p></p>`;
+    $("h2", head).textContent = fam.name;
+    $("p", head).textContent = fam.note;
+    mixer.append(head);
+    layers.forEach((layer) => mixer.append(mixRow(layer)));
   });
+  syncMixer();
+}
+function mixRow({ id, name, note, added }) {
+  const level = store.get("levels")[id] ?? 0.5;
+  const li = document.createElement("li");
+  li.className = "mix-row";
+  li.dataset.id = id;
+  li.innerHTML = `
+    <button class="mix-toggle" type="button" aria-pressed="false">
+      <span class="mix-name"></span>
+      <span class="mix-note"></span>
+      <span class="mix-state" aria-hidden="true"></span>
+    </button>
+    <label class="mix-volume" hidden>
+      <span>Volume</span>
+      <input type="range" min="0.05" max="1" step="0.01" value="${level}">
+    </label>`;
+  $(".mix-name", li).textContent = name;
+  if (isNew({ added })) {
+    const tag = document.createElement("span");
+    tag.className = "lib-new";
+    tag.textContent = "New";
+    $(".mix-name", li).append(tag);
+  }
+  $(".mix-note", li).textContent = note;
+  $("input", li).setAttribute("aria-label", `${name} volume`);
+  $(".mix-toggle", li).addEventListener("click", () => {
+    haptic.tap();
+    sound.isOn(id) ? sound.turnOff(id) : sound.turnOn(id, store.get("levels")[id] ?? 0.5);
+  });
+  $("input", li).addEventListener("input", (e) => {
+    const v = Number(e.target.value);
+    sound.setLevel(id, v);
+    store.set("levels", { ...store.get("levels"), [id]: v });
+  });
+  return li;
 }
 function syncMixer() {
-  $$(".mix-row", mixer).forEach((li, i) => {
-    const { id } = sound.LAYERS[i];
-    const on = sound.isOn(id);
+  $$(".mix-row", mixer).forEach((li) => {
+    const on = sound.isOn(li.dataset.id);
     const btn = $(".mix-toggle", li);
     btn.setAttribute("aria-pressed", String(on));
-    btn.textContent = on ? "On" : "Off";
+    $(".mix-state", li).textContent = on ? "Playing" : "";
+    li.classList.toggle("on", on);
     $(".mix-volume", li).hidden = !on;
   });
+}
+// Brian's own recordings, listed in sounds.json, become loops on the Sounds screen.
+async function loadRecordedSounds() {
+  try {
+    const res = await fetch("sounds.json", { cache: "no-cache" });
+    const d = await res.json();
+    sound.addRecordings(d.recordings || []);
+    renderMixer();
+  } catch { /* none yet, or offline */ }
 }
 const SOUND_TIMERS = [[0, "Keep playing"], [15, "15 min"], [30, "30 min"], [60, "1 hour"]];
 buildChoices($("#sound-timer-choices"), SOUND_TIMERS, 0, (v) => {
@@ -655,6 +689,7 @@ window.addEventListener("hashchange", route);
 applySettings();
 renderMixer();
 libraryReady = loadLibrary();
+libraryReady.then(loadRecordedSounds); // after the library, so "New" knows how many days count
 route();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {

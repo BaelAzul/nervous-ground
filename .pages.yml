@@ -90,6 +90,10 @@ content:
                   label: Low noise
                 - name: warm-hum
                   label: Warm hum
+                - name: by-a-stream
+                  label: Stream
+                - name: fireside
+                  label: Fire
           - name: minutes
             label: Length in minutes
             description: Leave empty for soundscapes that keep going.
@@ -130,6 +134,54 @@ content:
                   label: Soft focus
                 - name: warm-hum
                   label: Warm hum
+                - name: fireside
+                  label: Fireside
+                - name: by-a-stream
+                  label: By a stream
+                - name: curled-up
+                  label: Curled up
+                - name: still-air
+                  label: Still air
+          - name: added
+            label: Date added
+            description: Today's date makes it show as New.
+            type: date
+            options:
+              format: yyyy-MM-dd
+
+  - name: sounds
+    label: Sound loops (your outdoor recordings)
+    type: file
+    path: sounds.json
+    format: json
+    fields:
+      - name: recordings
+        label: Recordings that loop on the Sounds screen
+        description: Each one plays on repeat with a smooth join, and can be mixed with the other sounds. Best with 1 to 5 minutes of steady sound and no voices or cars.
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{name}"
+        fields:
+          - name: id
+            label: Short code
+            description: Lowercase with dashes and no spaces, different for every one. For example sea-dollymount.
+            type: string
+            required: true
+          - name: name
+            label: Name people see
+            type: string
+            required: true
+          - name: note
+            label: One line about it
+            type: string
+          - name: src
+            label: Recording file
+            type: file
+            required: true
+            options:
+              media: audio
           - name: added
             label: Date added
             description: Today's date makes it show as New.

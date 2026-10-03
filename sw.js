@@ -1,10 +1,10 @@
 // Keeps Ebbly working offline once it has been opened.
 // Bump VERSION whenever app files change so phones pick up the new version.
-const VERSION = "ebbly-3";
+const VERSION = "ebbly-5";
 const SHELL = [
   "./", "index.html", "css/app.css",
   "js/app.js", "js/store.js", "js/sound.js", "js/breath.js", "js/rings.js", "js/loops.js", "js/haptic.js",
-  "library.json", "loops.json", "manifest.webmanifest",
+  "library.json", "loops.json", "sounds.json", "manifest.webmanifest",
   "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
 ];
 
@@ -39,7 +39,7 @@ self.addEventListener("fetch", (e) => {
   }
 
   // The library list: try the network first so new items show up, fall back offline.
-  if (url.pathname.endsWith("library.json") || url.pathname.endsWith("loops.json")) {
+  if (/\/(library|loops|sounds)\.json$/.test(url.pathname)) {
     e.respondWith(fetch(req).then((res) => {
       const copy = res.clone();
       caches.open(VERSION).then((c) => c.put(req, copy));

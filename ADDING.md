@@ -75,3 +75,14 @@ In `loops.json`, each moment has `"rings"`. The choices are
 
 A new section needs some building. Write down what it's for and roughly what should happen,
 and send it to Claude.
+
+## Recordings that loop on the Sounds screen
+
+In the editor, open **Sound loops (your outdoor recordings)** and add one, uploading the file.
+It appears on the Sounds screen under **Recorded outdoors**, plays on repeat with a smooth
+join, and can be mixed with the other sounds.
+
+Tips for recording loops:
+- 1 to 5 minutes of steady sound works best (waves, a stream, rain on a roof, wind in trees).
+- Avoid voices, dogs, cars and sudden bangs. One loud moment gets heard every time round.
+- Hold the phone still, and cover the microphone with a sock or foam if it's windy.

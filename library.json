@@ -123,6 +123,54 @@
         "settle",
         "noise"
       ]
+    },
+    {
+      "id": "fireside",
+      "kind": "soundscape",
+      "title": "Fireside",
+      "description": "A low fire with quiet crackles and a little wind outside.",
+      "mix": "fireside",
+      "needs": [
+        "drained",
+        "settle"
+      ],
+      "added": "2026-10-03"
+    },
+    {
+      "id": "by-a-stream",
+      "kind": "soundscape",
+      "title": "By a stream",
+      "description": "Water running over stones. Busy enough to give a busy mind something to follow.",
+      "mix": "by-a-stream",
+      "needs": [
+        "overwhelm",
+        "settle"
+      ],
+      "added": "2026-10-03"
+    },
+    {
+      "id": "curled-up",
+      "kind": "soundscape",
+      "title": "Curled up",
+      "description": "A purring cat and soft rain. Close, warm and safe.",
+      "mix": "curled-up",
+      "needs": [
+        "drained",
+        "sleep"
+      ],
+      "added": "2026-10-03"
+    },
+    {
+      "id": "still-air",
+      "kind": "soundscape",
+      "title": "Still air",
+      "description": "Gentle grey noise with a singing bowl now and then. Lots of space.",
+      "mix": "still-air",
+      "needs": [
+        "noise",
+        "settle"
+      ],
+      "added": "2026-10-03"
     }
   ]
 }
