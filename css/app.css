@@ -1,3 +1,10 @@
+/* Lettering lives inside Ebbly (no calls to Google), so nothing leaves the phone and it works offline.
+   Nunito, Lexend and Atkinson Hyperlegible are under the SIL Open Font License (see fonts/). */
+@font-face { font-family: "Nunito"; src: url("../fonts/nunito.woff") format("woff"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "Lexend"; src: url("../fonts/lexend.woff") format("woff"); font-weight: 400 600; font-display: swap; }
+@font-face { font-family: "Atkinson Hyperlegible"; src: url("../fonts/atkinson-400.woff") format("woff"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Atkinson Hyperlegible"; src: url("../fonts/atkinson-700.woff") format("woff"); font-weight: 700; font-display: swap; }
+
 /* Ebbly
    A soft, warm place to land. Low glare, no pure black or white, gentle shapes.
    Lettering: Nunito (soft and round) by default; Atkinson Hyperlegible and Lexend in Settings.
