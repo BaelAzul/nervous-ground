@@ -530,3 +530,87 @@ body.in-calm main { max-width: none; padding: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
 }
+
+/* ---------- practice ---------- */
+.section-title { font-size: var(--step-1); margin: 1.75rem 0 .6rem; }
+.session-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .7rem; }
+.session-card {
+  padding: 1rem 1.1rem .4rem; border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--shadow);
+}
+.session-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.session-name { font-weight: 600; font-size: var(--step-1); }
+.session-time { color: var(--sand); font-size: var(--step-0); white-space: nowrap; }
+.session-note { color: var(--lichen); font-size: var(--step-0); margin: .2rem 0 0; }
+.session-steps { color: var(--lichen); font-size: .85rem; margin: .35rem 0 0; }
+.session-card .row { margin: .7rem 0 .6rem; }
+.session-card .primary, .session-card .secondary { min-height: 44px; padding: .3rem 1.2rem; font-size: var(--step-0); }
+.session-card .secondary { background: var(--surface-2); }
+.recent { margin-top: 1rem; }
+
+/* builder */
+.build-name { display: grid; gap: .35rem; margin: 1rem 0 1.25rem; font-weight: 600; }
+.build-steps { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .7rem; }
+.build-step { display: grid; gap: .7rem; padding: 1rem 1.05rem; border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--shadow); }
+.build-step-head { display: flex; align-items: center; gap: .6rem; }
+.build-step-n { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: color-mix(in srgb, var(--breath) 22%, transparent); color: var(--breath); font-weight: 700; font-size: var(--step-0); flex: none; }
+.build-step-title { font-weight: 600; flex: 1; min-width: 0; }
+.build-step-tools { display: flex; gap: .25rem; }
+.icon-mini { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--surface-2); cursor: pointer; font-size: .95rem; }
+.icon-mini:disabled { opacity: .35; cursor: default; }
+.build-step .choice-row button { min-height: 38px; padding: .25rem .85rem; background: var(--surface-2); }
+.build-step .choice-row button[aria-pressed="true"] { background: var(--breath); }
+.build-sound { display: grid; gap: .3rem; font-size: var(--step-0); color: var(--lichen); }
+.select {
+  font: inherit; font-size: var(--step-0); color: var(--mist); background: var(--surface-2); border: 0;
+  border-radius: 12px; padding: .6rem .8rem; min-height: 44px; width: 100%;
+}
+.build-add { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .5rem 0 1rem; }
+.build-add .hint { margin: 0 .25rem 0 0; }
+.build-add .secondary { min-height: 42px; padding: .2rem 1rem; font-size: var(--step-0); }
+.build-total { color: var(--lichen); font-size: var(--step-0); }
+
+/* playing a session: full screen, like the calm space */
+body.in-session { padding-bottom: 0; }
+body.in-session .top, body.in-session .tabs { display: none; }
+body.in-session main { max-width: none; padding: 0; }
+.session { position: fixed; inset: 0; background: var(--ground); }
+.session canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.session-ui {
+  position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto;
+  padding: calc(1rem + env(safe-area-inset-top)) var(--gutter) calc(1.25rem + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+.session-ui button, .session-ui a { pointer-events: auto; }
+.session-top { max-width: 34rem; width: 100%; margin: 0 auto; }
+.session-title { text-align: center; color: var(--lichen); font-size: var(--step-0); margin: 0 auto .6rem; }
+.seg-bar { display: flex; gap: 4px; height: 6px; }
+.seg-bar i { display: block; flex-basis: 0; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.seg-bar i b { display: block; height: 100%; width: 0; background: var(--breath); }
+.seg-bar i.done b { width: 100% !important; opacity: .5; }
+.session-mid { display: grid; place-items: center; }
+.session-cue {
+  font-size: var(--step-3); font-weight: 600; text-align: center; max-width: 14em; margin: 0 auto;
+  text-shadow: 0 0 18px var(--ground), 0 0 6px var(--ground);
+}
+.session-bottom { display: grid; justify-items: center; gap: .5rem; text-align: center; }
+.session-step { margin: 0; font-weight: 600; }
+.session-left { margin: 0; color: var(--lichen); font-size: var(--step-0); min-height: 1.4em; font-variant-numeric: tabular-nums; }
+.session-end { grid-row: 1 / -1; display: grid; align-content: center; justify-items: center; gap: 1rem; text-align: center; pointer-events: auto; }
+.feel-row { justify-content: center; }
+
+/* sound panel */
+.sheet { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .35); display: flex; align-items: flex-end; justify-content: center; opacity: 0; transition: opacity .3s ease; }
+.sheet[hidden] { display: none; }
+.sheet.open { opacity: 1; }
+.sheet-panel {
+  width: min(100%, 40rem); max-height: 78dvh; overflow-y: auto;
+  background: var(--ground-2); border-radius: 26px 26px 0 0; box-shadow: 0 -10px 30px rgba(0, 0, 0, .25);
+  padding: 1rem var(--gutter) calc(1.25rem + env(safe-area-inset-bottom));
+  transform: translateY(30px); transition: transform .3s ease;
+}
+.sheet.open .sheet-panel { transform: none; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; position: sticky; top: -1rem; background: var(--ground-2); padding: .25rem 0 .5rem; z-index: 1; }
+.sheet-head h2 { margin: 0; font-size: var(--step-2); }
+.sheet-head .secondary { min-height: 42px; padding: 0 1.2rem; }
+.sheet .mixer { margin-top: .75rem; }
+.breath-controls { gap: .5rem; }

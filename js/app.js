@@ -5,6 +5,7 @@ import { createRings } from "./rings.js";
 import * as haptic from "./haptic.js";
 import { loadCaptions, createCaptionView } from "./captions.js";
 import * as loops from "./loops.js";
+import * as practiceView from "./practice.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -304,8 +305,8 @@ $("#history-clear").addEventListener("click", () => { store.set("practiceLog", [
 
 /* ---------------- sounds ---------------- */
 const mixer = $("#mixer");
-function renderMixer() {
-  mixer.innerHTML = "";
+function renderMixer(container = mixer) {
+  container.innerHTML = "";
   sound.FAMILIES.forEach((fam) => {
     const layers = sound.LAYERS.filter((l) => l.family === fam.id);
     if (!layers.length) return;
@@ -314,8 +315,8 @@ function renderMixer() {
     head.innerHTML = `<h2></h2><p></p>`;
     $("h2", head).textContent = fam.name;
     $("p", head).textContent = fam.note;
-    mixer.append(head);
-    layers.forEach((layer) => mixer.append(mixRow(layer)));
+    container.append(head);
+    layers.forEach((layer) => container.append(mixRow(layer)));
   });
   syncMixer();
 }
@@ -355,7 +356,7 @@ function mixRow({ id, name, note, added }) {
   return li;
 }
 function syncMixer() {
-  $$(".mix-row", mixer).forEach((li) => {
+  $$(".mix-row").forEach((li) => {
     const on = sound.isOn(li.dataset.id);
     const btn = $(".mix-toggle", li);
     btn.setAttribute("aria-pressed", String(on));
@@ -396,6 +397,27 @@ sound.onChange(() => {
   syncSoundTimer();
 });
 setInterval(() => { if (sound.timerRemaining()) syncSoundTimer(); }, 1000);
+
+/* ---------------- sound panel (slides up anywhere) ---------------- */
+// One mixer that can be opened from breathing, meditation, sessions or the calm space.
+const sheet = $("#sound-sheet");
+function openSoundSheet() {
+  renderMixer($("#sheet-mixer"));
+  syncMixer();
+  sheet.hidden = false;
+  requestAnimationFrame(() => sheet.classList.add("open"));
+  $("#sheet-close").focus({ preventScroll: true });
+}
+function closeSoundSheet() {
+  sheet.classList.remove("open");
+  setTimeout(() => { sheet.hidden = true; $("#sheet-mixer").innerHTML = ""; }, store.minimalMotion() ? 0 : 300);
+}
+document.addEventListener("ebbly:sounds", openSoundSheet);
+$("#sheet-close").addEventListener("click", closeSoundSheet);
+sheet.addEventListener("click", (e) => { if (e.target === sheet) closeSoundSheet(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !sheet.hidden) closeSoundSheet(); });
+$$("[data-open-sounds]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); openSoundSheet(); }));
+window.addEventListener("hashchange", () => { if (!sheet.hidden) closeSoundSheet(); });
 
 /* ---------------- library ---------------- */
 let library = { needs: [], items: [] };
@@ -687,8 +709,8 @@ $("#worry-dismiss").addEventListener("click", () => { loops.clearWorryTime(); sh
 $("#worry-go").addEventListener("click", () => { loops.clearWorryTime(); });
 
 /* ---------------- router ---------------- */
-const VIEWS = ["home", "breathe", "sounds", "library", "calm", "settings", "loops", "loop", "help", "listen"];
-const TAB_FOR = { loop: "loops", help: "loops", listen: "library" };
+const VIEWS = ["home", "breathe", "sounds", "library", "calm", "settings", "loops", "loop", "help", "listen", "practice", "build", "session"];
+const TAB_FOR = { loop: "loops", help: "loops", listen: "library", breathe: "practice", build: "practice", session: "practice" };
 let currentView = null;
 
 function route() {
@@ -732,6 +754,10 @@ function route() {
   if (view === "help") loops.renderHelp($("#help-view"));
   if (view === "home") { showWorryBanner(); greet(); startHomeRings(); }
   if (view === "calm") enterCalm(params);
+  if (currentView === "session" && view !== "session") practiceView.leaveSession();
+  if (view === "practice") practiceView.renderPractice($("#practice-view"));
+  if (view === "build") practiceView.renderBuilder($("#build-view"), params);
+  if (view === "session") practiceView.renderSession($("#session-view"), params);
   if (view === "listen") enterListen();
   if (currentView === "listen" && view !== "listen") leaveListen();
 

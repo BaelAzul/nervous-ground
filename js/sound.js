@@ -40,6 +40,40 @@ export const MIXES = {
   "still-air": { grey: 0.45, bowl: 0.35 },
 };
 
+// Friendly names for the mixes, for menus.
+export const MIX_LABELS = {
+  "quiet-room": "Low noise", "low-tide": "Waves", "rain-room": "Rain", "by-a-stream": "Stream",
+  "fireside": "Fire", "curled-up": "Purr and rain", "soft-focus": "Soft focus", "warm-hum": "Warm hum",
+  "still-air": "Still air and bowl",
+};
+
+// What's playing right now and how loud, so it can be saved into a session.
+export function currentLevels() {
+  const out = {};
+  active.forEach((a, id) => { out[id] = a.level ?? 0.5; });
+  return out;
+}
+// Play exactly these layers at these levels (anything else fades out).
+export function playLevels(levels = {}) {
+  [...active.keys()].forEach((id) => { if (levels[id] == null) turnOff(id); });
+  Object.entries(levels).forEach(([id, lvl]) => turnOn(id, lvl));
+}
+
+// A single soft bowl, for the start and end of a part of a session.
+export function chime(level = 1) {
+  ensureContext();
+  const t = ctx.currentTime + 0.02;
+  [[1, 0.5, 6], [2.76, 0.18, 4], [5.4, 0.06, 2.5]].forEach(([m, lvl, dur]) => {
+    const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = 220 * m;
+    const g = ctx.createGain(); g.gain.value = 0;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(lvl * 0.16 * level, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(ctx.destination);
+    o.start(t); o.stop(t + dur + 0.1);
+  });
+}
+
 // Background choices offered under a recording.
 export const BACKGROUNDS = [
   ["none", "No background"],
@@ -480,7 +514,7 @@ export function anyOn() { return active.size > 0; }
 
 export function setLevel(id, level) {
   const a = active.get(id);
-  if (a) a.gain.gain.setTargetAtTime(level, ctx.currentTime, 0.3);
+  if (a) { a.level = level; a.gain.gain.setTargetAtTime(level, ctx.currentTime, 0.3); }
 }
 
 export function turnOn(id, level = 0.5) {
@@ -499,7 +533,7 @@ export function turnOn(id, level = 0.5) {
     : PRERENDER[id] && typeof OfflineAudioContext !== "undefined" ? buildPrerendered(id, trim)
     : build(id, trim);
   gain.gain.setTargetAtTime(level, ctx.currentTime, FADE / 3);
-  active.set(id, { gain, stop });
+  active.set(id, { gain, stop, level });
   emit();
 }
 
@@ -599,16 +633,21 @@ export function unlock() { ensureContext(); }
 // background can dip gently while the voice is speaking and rise in the pauses.
 let voice = null;
 let duckTimer = 0;
+const attached = new WeakSet();
 export function attachVoice(audioEl) {
   ensureContext();
-  if (voice) return true;
+  if (attached.has(audioEl)) return true;
   try {
+    if (!voice) {
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      voice = { analyser, data: new Float32Array(analyser.fftSize), level: 0 };
+    }
+    // Any number of players (library, sessions) can share the voice listener.
     const src = ctx.createMediaElementSource(audioEl);
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 1024;
-    src.connect(analyser);
+    src.connect(voice.analyser);
     src.connect(ctx.destination); // the voice itself is not capped by the background ceiling
-    voice = { analyser, data: new Float32Array(analyser.fftSize), level: 0 };
+    attached.add(audioEl);
     return true;
   } catch {
     return false; // older browsers: recording still plays, background just won't dip

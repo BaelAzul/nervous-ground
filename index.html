@@ -102,6 +102,7 @@
 
       <div class="breath-controls">
         <button class="primary" id="breath-toggle">Start</button>
+        <button type="button" class="secondary" data-open-sounds>Sounds</button>
       </div>
       <p class="not-helping" id="not-helping" hidden>
         <a href="#calm?mix=quiet-room&amp;visual=still" class="text-link">This isn't helping. Take me somewhere quiet.</a>
@@ -200,6 +201,7 @@
         <button class="secondary" id="player-back" aria-label="Back 15 seconds">−15s</button>
         <button class="primary" id="player-toggle">Pause</button>
         <button class="secondary" id="player-stop">Stop</button>
+        <button type="button" class="secondary" data-open-sounds>Sounds</button>
       </div>
       <div class="listen-options">
         <label class="switch" id="captions-row" hidden><input type="checkbox" id="captions-toggle"> <span>Show the words as they're spoken</span></label>
@@ -218,12 +220,17 @@
         <p class="calm-time" id="calm-time"></p>
         <div class="calm-controls">
           <button class="secondary" id="calm-visual">Make it still</button>
-          <a class="secondary" href="#sounds" id="calm-sounds">Change sounds</a>
+          <button type="button" class="secondary" id="calm-sounds" data-open-sounds>Sounds</button>
           <button class="primary" id="calm-exit">Leave</button>
         </div>
         <p class="calm-hint">Tap anywhere to hide or show these buttons.</p>
       </div>
     </section>
+
+    <!-- PRACTICE -->
+    <section class="view" data-view="practice" id="practice-view" hidden></section>
+    <section class="view" data-view="build" id="build-view" hidden></section>
+    <section class="view session" data-view="session" id="session-view" hidden></section>
 
     <!-- THOUGHT LOOPS -->
     <section class="view" data-view="loops" id="loops-view" hidden></section>
@@ -302,9 +309,21 @@
     </section>
   </main>
 
+  <!-- Sound panel: slides up from anywhere -->
+  <div class="sheet" id="sound-sheet" hidden>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="sheet-head">
+        <h2 id="sheet-title">Sounds</h2>
+        <button type="button" class="secondary" id="sheet-close">Done</button>
+      </div>
+      <p class="hint">Tap to play or stop. Changes carry on as you go.</p>
+      <ul class="mixer" id="sheet-mixer"></ul>
+    </div>
+  </div>
+
   <nav class="tabs" aria-label="Main">
     <a href="#home" data-tab="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
-    <a href="#breathe" data-tab="breathe"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg><span>Breathe</span></a>
+    <a href="#practice" data-tab="practice"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg><span>Practice</span></a>
     <a href="#sounds" data-tab="sounds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h1.5M8 8v8M12 5v14M16 8v8M19.5 12H20"/></svg><span>Sounds</span></a>
     <a href="#loops" data-tab="loops"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c-2.5-3-7-3-7 0s4.5 3 7 0 7-3 7 0-4.5 3-7 0z"/></svg><span>Loops</span></a>
     <a href="#library" data-tab="library"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 14v-2a7 7 0 0 1 14 0v2M5 14h2.5v5H5zM16.5 14H19v5h-2.5z"/></svg><span>Library</span></a>

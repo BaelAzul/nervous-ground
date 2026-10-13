@@ -22,6 +22,8 @@ const defaults = {
   practiceMinutes: 5,
   practiceLog: [],
   background: "none",
+  sessions: [],      // practice sessions people have built
+  sessionsLog: [],   // when a session was done, how long, and how they felt (optional)
   worryTime: null, // only the time someone chose to come back to a worry; never the words
 };
 
